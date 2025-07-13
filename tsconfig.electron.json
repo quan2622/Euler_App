@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",       
+    "outDir": "dist-electron",
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "types": ["node"],                      
+    "baseUrl": "./"
+  },
+  "include": ["src-electron/**/*"]
+}
+
+// npx tsc -b tsconfig.electron.json
