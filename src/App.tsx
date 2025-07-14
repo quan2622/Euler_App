@@ -1,12 +1,15 @@
-import { Button } from "./components/ui/button"
+import { Route, Routes } from "react-router-dom"
+import MainLayout from "./layout/MainLayout"
+import HomePage from "./pages/home/HomePage"
 
 function App() {
   return (
     <>
-      <h1 className="text-3xl font-bold underline text-red-400">
-        Hello world!
-      </h1>
-      <Button variant={"outline"} onClick={() => alert("Button had been click")}>Click me!</Button>
+      <Routes>
+        <Route element={<MainLayout />} >
+          <Route path="/" element={<HomePage />} />
+        </Route>
+      </Routes>
     </>
   )
 }
