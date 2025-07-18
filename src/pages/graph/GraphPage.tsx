@@ -119,6 +119,7 @@ const GraphPage = () => {
       css: {
         "background-color": "transparent",
         "border-width": 0,
+        opacity: 0,
         width: 1,
         height: 1,
         label: "",
@@ -179,37 +180,11 @@ const GraphPage = () => {
 
           cy.autoungrabify(true);
           // cy.userPanningEnabled(false);
-
-          // tempTargetNodeIdRef.current = `temp-target-${Date.now()}`
-          // cy.add({
-          //   group: "nodes",
-          //   data: { id: tempTargetNodeIdRef.current },
-          //   position: evt.position,
-          //   classes: "temp-node",
-          // });
-
-          // tempEdgeIdRef.current = `temp-edge-${Date.now()}`;
-          // cy.add({
-          //   group: "edges",
-          //   data: {
-          //     id: tempEdgeIdRef.current,
-          //     source: dragSourceNodeIdRef.current,
-          //     target: tempTargetNodeIdRef.current,
-          //   },
-          //   classes: "temp-edge",
-          // });
-          // evt.stopPropagation();
+          evt.stopPropagation();
         }
       })
 
       cy.on('mousemove', (evt) => {
-        // if (evt.originalEvent.shiftKey && dragSourceNodeIdRef.current && tempTargetNodeIdRef.current) {
-        //   const tempTargetNode = cy.$(`#${tempTargetNodeIdRef.current}`);
-        //   if (tempTargetNode.length > 0 && evt.position) {
-        //     tempTargetNode.position(evt.position);
-        //   }
-        // }
-
         if (evt.originalEvent.shiftKey && dragSourceNodeIdRef.current) {
 
           cy.$(`#${tempEdgeIdRef.current}`).remove();
@@ -217,7 +192,7 @@ const GraphPage = () => {
 
           const mousePos = evt.position || (evt as any).cyPosition;
           const nodeNear = cy.nodes().filter((node) => {
-            if (node.id() === dragSourceNodeIdRef.current) return false;
+            // if (node.id() === dragSourceNodeIdRef.current) return false;
             const nodePos = node.position();
             const distance = Math.sqrt(Math.pow(mousePos.x - nodePos.x, 2) + Math.pow(mousePos.y - nodePos.y, 2));
             return distance < 25;
@@ -233,6 +208,7 @@ const GraphPage = () => {
                 source: dragSourceNodeIdRef.current,
                 target: targetNode.id(),
               },
+              // classes: "temp-edge",
               style: {
                 "line-color": "#2ECC40",
                 "target-arrow-color": "#2ECC40",
@@ -248,11 +224,7 @@ const GraphPage = () => {
               group: "nodes",
               data: { id: tempTargetNodeIdRef.current },
               position: mousePos,
-              style: {
-                opacity: 0,
-                width: 1,
-                height: 1,
-              },
+              classes: "temp-node"
             });
 
             tempEdgeIdRef.current = `temp-edge-${Date.now()}`;
@@ -263,55 +235,38 @@ const GraphPage = () => {
                 source: dragSourceNodeIdRef.current,
                 target: tempTargetNodeIdRef.current,
               },
-              style: {
-                "line-color": "#FF851B",
-                "target-arrow-color": "#FF851B",
-                "target-arrow-shape": "triangle",
-                width: 2,
-                opacity: 0.7,
-                "line-style": "dashed",
-              },
+              classes: "temp-edge",
             });
           }
         }
 
+        if (!evt.originalEvent.shiftKey) {
+          handleResetCache(cy);
+        }
+
       })
+
 
       cy.on('mouseup', (evt) => {
         if (evt.originalEvent.shiftKey && dragSourceNodeIdRef.current) {
           const targetElement = evt.target;
-          if (targetElement.isNode() && dragSourceNodeIdRef.current !== targetElement.id()) {
+          if (targetElement.isNode() && dragSourceNodeIdRef.current && targetElement.id()) {
             addEdge(dragSourceNodeIdRef.current, targetElement.id());
             edgeCounterRef.current += 1;
-          }
+            handleResetCache(cy);
 
-          if (tempEdgeIdRef.current) {
-            cy.remove(`#${tempEdgeIdRef.current}`)
-            tempEdgeIdRef.current = null
+            dragSourceNodeIdRef.current = null;
+          } else {
+            handleResetCache(cy);
           }
-          if (tempTargetNodeIdRef.current) {
-            cy.remove(`#${tempTargetNodeIdRef.current}`)
-            tempTargetNodeIdRef.current = null
-          }
-          cy.autoungrabify(false);
-          // cy.userPanningEnabled(false);
-          dragSourceNodeIdRef.current = null
         }
+        cy.autoungrabify(false);
+        // cy.userPanningEnabled(false);
       })
 
       cy.on('mouseout', (evt) => {
         if (evt.originalEvent.shiftKey && dragSourceNodeIdRef.current && evt.target === cy) {
-          // Xóa các elements tạm thời
-          if (tempEdgeIdRef.current) {
-            cy.remove(`#${tempEdgeIdRef.current}`)
-            tempEdgeIdRef.current = null
-          }
-          if (tempTargetNodeIdRef.current) {
-            cy.remove(`#${tempTargetNodeIdRef.current}`)
-            tempTargetNodeIdRef.current = null
-          }
-
-          dragSourceNodeIdRef.current = null
+          handleResetCache(cy);
         }
       })
 
@@ -328,10 +283,6 @@ const GraphPage = () => {
     [])
 
 
-  const edgeArray = cyInstance.current?.edges().toArray(); // safe!
-  console.log(edgeArray?.map(e => e.id()));
-
-
   const addNode = useCallback((label: string, position: { x: number, y: number }) => {
     if (!cyInstance.current) return;
 
@@ -346,7 +297,7 @@ const GraphPage = () => {
   const addEdge = useCallback((sourceId: string, targetId: string) => {
     if (!cyInstance.current) return;
 
-    const id = `${sourceId}-${targetId}`;
+    const id = `${sourceId}-${targetId}-${Date.now()}`;
     cyInstance.current.add({
       group: "edges",
       data: {
@@ -373,6 +324,19 @@ const GraphPage = () => {
     }
   }
 
+  const handleResetCache = (cy: Core) => {
+    if (tempEdgeIdRef.current) {
+      cy.$id(tempEdgeIdRef.current)?.remove();
+      tempEdgeIdRef.current = null;
+    }
+    if (tempTargetNodeIdRef.current) {
+      cy.$id(tempTargetNodeIdRef.current)?.remove();
+      tempTargetNodeIdRef.current = null;
+    }
+    if (dragSourceNodeIdRef.current) {
+      dragSourceNodeIdRef.current = null;
+    }
+  }
 
   const handleLimitNodeOnScreen = useCallback(
     (cy: Core, containerRef: React.RefObject<HTMLDivElement | null>) => {
