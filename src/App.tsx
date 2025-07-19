@@ -8,10 +8,9 @@ function App() {
   return (
     <>
       <Routes>
-        <Route element={<MainLayout />} >
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/" element={<GraphPage />} />
-        </Route>
+        <Route path="/main" element={<MainLayout />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/" element={<GraphPage />} />
       </Routes>
       <Toaster
         position="top-center"
