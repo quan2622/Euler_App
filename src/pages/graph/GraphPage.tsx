@@ -17,6 +17,7 @@ const GraphPage = () => {
   const [isDirectedGraph, setIsDirectedGraph] = useState(true);
   const [currentLayout, setCurrentLayout] = useState("grid");
 
+
   // ===== STATE CHO DIALOG TẠO NODE MỚI =====
   const newNodePositionRef = useRef<{ x: number; y: number } | null>(null);
   const [isOpenDialog, setIsOpenDialog] = useState(false);
@@ -55,6 +56,7 @@ const GraphPage = () => {
   const nodeCounterRef = useRef(1)
   const edgeCounterRef = useRef(1)
 
+  const startNodeRef = useRef<EdgeSingular | null>(null);
 
 
   const getCytoscapeStyle = useCallback((isDirected: boolean): StylesheetCSS[] => [
@@ -93,13 +95,15 @@ const GraphPage = () => {
 
     // Style cho elements được chọn
     {
-      selector: ":selected",
+      selector: "node.selected",
       css: {
-        "background-color": "#EF4444", // Màu đỏ khi được chọn
-        "line-color": "#EF4444",
-        "target-arrow-color": "#EF4444",
+        // "background-color": "#EF4444", // Màu đỏ khi được chọn
+        // "line-color": "#EF4444",
+        // "target-arrow-color": "#EF4444",
+        // "border-color": "#FCD34D", // Viền vàng
         "border-width": 3,
-        "border-color": "#FCD34D", // Viền vàng
+        "background-color": "#FFDC00",
+        "border-color": "#FF851B",
       },
     },
 
@@ -166,6 +170,7 @@ const GraphPage = () => {
 
   const handleEventListener = useCallback(
     (cy: Core) => {
+      // Create new Node
       cy.on('dblclick', (evt) => {
         if (evt.target === cy) {
           newNodePositionRef.current = evt.position;
@@ -174,6 +179,21 @@ const GraphPage = () => {
         }
       })
 
+      cy.on('dblclick', 'node', (evt) => {
+        if (evt.target.isNode()) {
+          if (startNodeRef.current) {
+            cy.$id(startNodeRef.current.id()).removeClass('selected');
+          }
+          if (startNodeRef.current?.id() !== evt.target.id()) {
+            startNodeRef.current = evt.target;
+            cy.$id(evt.target.id()).addClass('selected');
+          } else {
+            startNodeRef.current = null;
+          }
+        }
+      })
+
+      // Start create Edge
       cy.on('mousedown', 'node', (evt) => {
         if (evt.originalEvent.shiftKey) {
           dragSourceNodeIdRef.current = evt.target.id();
@@ -208,14 +228,12 @@ const GraphPage = () => {
                 source: dragSourceNodeIdRef.current,
                 target: targetNode.id(),
               },
-              // classes: "temp-edge",
+              classes: "temp-edge",
               style: {
                 "line-color": "#2ECC40",
                 "target-arrow-color": "#2ECC40",
                 "target-arrow-shape": "triangle",
-                width: 3,
-                opacity: 0.8,
-                "line-style": "dashed",
+                "line-style": "solid",
               },
             })
           } else {
@@ -246,7 +264,6 @@ const GraphPage = () => {
 
       })
 
-
       cy.on('mouseup', (evt) => {
         if (evt.originalEvent.shiftKey && dragSourceNodeIdRef.current) {
           const targetElement = evt.target;
@@ -263,15 +280,18 @@ const GraphPage = () => {
         cy.autoungrabify(false);
         // cy.userPanningEnabled(false);
       })
+      // End create Edge
 
+      // Out of Cavas
       cy.on('mouseout', (evt) => {
         if (evt.originalEvent.shiftKey && dragSourceNodeIdRef.current && evt.target === cy) {
           handleResetCache(cy);
         }
       })
 
+      // interact with node
       cy.on('mouseover', 'node', (evt) => {
-        if (!evt.originalEvent.shiftKey) {
+        if (!evt.originalEvent.shiftKey && !evt.target.hasClass('selected')) {
           evt.target.addClass("highlighted")
         }
       })
@@ -279,6 +299,8 @@ const GraphPage = () => {
       cy.on("mouseout", "node", (evt) => {
         evt.target.removeClass("highlighted")
       })
+
+
     },
     [])
 
@@ -366,6 +388,8 @@ const GraphPage = () => {
       });
     }, [])
 
+  // handle analystic
+
 
   useEffect(() => {
     if (!cyRef.current) return;
@@ -382,6 +406,7 @@ const GraphPage = () => {
       userPanningEnabled: true,
       boxSelectionEnabled: false,
       autoungrabify: false,
+      autounselectify: true,
 
       panningEnabled: true,
     });
