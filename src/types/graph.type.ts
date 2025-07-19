@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type { EdgeSingular } from "cytoscape";
+import type { Core, EdgeSingular, EventObject, NodeSingular } from "cytoscape";
 
 // HomePage
 export interface Algorithm {
@@ -13,13 +13,6 @@ export interface Algorithm {
   finished: boolean;
 }
 
-// AlgorithmPage
-export interface GraphAnalysis {
-  adjacencyMatrix: number[][]
-  adjacencyList: { [key: string]: string[] }
-  nodeDegrees: { [key: string]: { in: number; out: number; total: number } }
-  nodeLabels: string[]
-}
 
 export interface EulerResult {
   hasEulerCycle: boolean
@@ -39,4 +32,47 @@ export interface AlgorithmStep {
   nextNode?: string
   adjacencyList: { [key: string]: string[] }
   explanation: string
+}
+
+
+// AlgorithmPage
+// checked
+export interface GraphAnalysis {
+  adjacencyMatrix: number[][]
+  adjacencyList: { [key: string]: string[] }
+  nodeDegrees: { [key: string]: { in: number; out: number; total: number } }
+  nodeLabels: string[]
+}
+
+// checked
+export interface GraphState {
+  isDirectedGraph: boolean;
+  currentLayout: string;
+  selectedElements: string[];
+  selectedNode: NodeSingular | null;
+  selectedEdge: EdgeSingular | null;
+  connectedComponents: string[][];
+}
+
+// checked
+export interface NodePosition {
+  x: number;
+  y: number;
+}
+
+// checked
+export interface GraphRefs {
+  cyInstanceRef: React.RefObject<Core | null>;
+  dragSourceNodeIdRef: React.RefObject<string | null>;
+  tempTargetNodeIdRef: React.RefObject<string | null>;
+  tempEdgeIdRef: React.RefObject<string | null>;
+  nodeCounterRef: React.RefObject<number>;
+  edgeCounterRef: React.RefObject<number>;
+  startNodeRef: React.RefObject<EdgeSingular | null>;
+  newNodePositionRef: React.RefObject<NodePosition | null>;
+}
+
+// checked
+export interface MouseEventObject extends EventObject {
+  cyPosition?: { x: number; y: number };
 }
