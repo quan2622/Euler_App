@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Eraser, FileDown, FileUp, Fullscreen, Shrink, Trash2, ZoomIn, ZoomOut } from "lucide-react";
 import { useGraphStatusStore } from "../../store/useGraphStatusStore";
-import { Label } from "../../components/ui/label";
 import { Input } from "../../components/ui/input";
 
 interface GraphToolbarProps {
@@ -79,10 +78,11 @@ const GraphToolbar = ({
       GraphService.addEdge(cy, sourceNode.id(), targetNode.id());
       updateNodeDegree(sourceNode.id(), targetNode.id(), isDirectedGraph);
       cy.nodes().removeClass("hasSelected");
+      handleResetSelectedElement();
     } else {
       toast.warning("Vui lòng chỉ chọn 2 nút để tạo liên kết");
     }
-  }, [selectedElements]);
+  }, [selectedElements, cyInstance]);
 
   const handleDeleteElement = useCallback(() => {
     const cy = cyInstance.current;
