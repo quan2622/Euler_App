@@ -22,7 +22,7 @@ export const useCytoscapeInstance = (
       userPanningEnabled: true,
       boxSelectionEnabled: false,
       autoungrabify: false,
-      autounselectify: true,
+      autounselectify: false, // config cho evt select
       panningEnabled: true,
     });
 

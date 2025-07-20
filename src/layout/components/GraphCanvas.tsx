@@ -5,6 +5,7 @@ import CreateNodeDialog from "./CreateNodeDialog";
 import { toast } from "sonner";
 import { useCytoscapeInstance } from "../../hooks/useCytoscapeInstance";
 import { useGraphEvents } from "../../hooks/useGraphEvent";
+import { useAnalystis } from "../../hooks/useAnalystis";
 
 interface GraphCanvasProps {
   cyInstanceRef: React.RefObject<Core | null>;
@@ -21,7 +22,6 @@ const GraphCanvas = ({
   edgeCounterRef,
   startNodeRef,
 }: GraphCanvasProps) => {
-
   const cyRef = useRef<HTMLDivElement>(null);
   const dragSourceNodeIdRef = useRef<string | null>(null)
   const tempTargetNodeIdRef = useRef<string | null>(null)
@@ -35,6 +35,9 @@ const GraphCanvas = ({
 
   // init canvas
   useCytoscapeInstance(cyRef, cyInstanceRef, isDirectedGraph);
+  // analystis graph
+  useAnalystis(cyInstanceRef);
+
 
   // config handle event
   const { handleEventListener } = useGraphEvents({

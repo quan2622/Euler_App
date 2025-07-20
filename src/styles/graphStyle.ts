@@ -33,6 +33,21 @@ export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
       width: 2,
     },
   },
+  {
+    selector: "node.hasSelected",
+    css: {
+      "border-color": "#EF4444",
+      "border-width": 3,
+    },
+  },
+  {
+    selector: "edge.hasSelected",
+    css: {
+      "line-color": "#EF4444",
+      "target-arrow-color": "#EF4444",
+      width: 3,
+    },
+  },
 
   // Style cho elements được chọn
   {

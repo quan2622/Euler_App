@@ -1,5 +1,5 @@
 import { useRef, useState } from "react"
-import type { Core, EdgeSingular, NodeSingular } from "cytoscape";
+import type { Core, EdgeSingular } from "cytoscape";
 import type { GraphAnalysis } from "../types/graph.type";
 import GraphToolbar from "./components/GraphToolbar";
 import GraphCanvas from "./components/GraphCanvas";
@@ -7,7 +7,6 @@ import GraphCanvas from "./components/GraphCanvas";
 const MainLayout = () => {
   const cyInstance = useRef<Core | null>(null);
   const [isDirectedGraph, setIsDirectedGraph] = useState(true);
-  const [currentLayout, setCurrentLayout] = useState("grid");
 
   const [graphAnalysis, setGraphAnalysis] = useState<GraphAnalysis>({
     adjacencyMatrix: [],
@@ -15,12 +14,6 @@ const MainLayout = () => {
     nodeDegrees: {},
     nodeLabels: [],
   });
-
-  const [selectedElements, setSelectedElements] = useState<string[]>([])
-  const [selectedNode, setSelectedNode] = useState<NodeSingular | null>(null)
-  const [selectedEdge, setSelectedEdge] = useState<EdgeSingular | null>(null)
-  const [connectedComponents, setConnectedComponents] = useState<string[][]>([])
-
 
   // Refs đếm số lượng node và edge để tạo ID duy nhất
   const nodeCounterRef = useRef(1)
@@ -37,7 +30,12 @@ const MainLayout = () => {
     <>
       <div className="flex h-screen bg-zinc-500">
         <div className="flex-1 flex flex-col">
-          <GraphToolbar isDirectedGraph={isDirectedGraph} onToggleDirected={onToggleDirected} />
+          <GraphToolbar
+            cyInstance={cyInstance}
+            isDirectedGraph={isDirectedGraph}
+            onToggleDirected={onToggleDirected}
+            edgeCounterRef={edgeCounterRef}
+          />
 
           {/* Graph Container */}
           <GraphCanvas

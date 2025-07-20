@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import type { Core, EdgeSingular } from "cytoscape";
 import { GraphService } from "../services/graphService";
 import type { MouseEventObject } from "../types/graph.type";
+import { useGraphStore } from "../store/useGraphStore";
 
 interface useGraphEventsProps {
   isDirectedGraph: boolean,
@@ -28,6 +29,10 @@ export const useGraphEvents = (
     onLableChange,
     toggleDialog }: useGraphEventsProps
 ) => {
+
+
+  const { selectedElements, handleAddSelectedElements, handleRemoveSelectedElements } = useGraphStore();
+
   const handleResetCache = useCallback((cy: Core) => {
     const tempIds = [tempEdgeIdRef.current, tempTargetNodeIdRef.current].filter((id) => id !== null);
     GraphService.clearTempElements(cy, tempIds)
@@ -162,20 +167,20 @@ export const useGraphEvents = (
         }
       })
 
-      // interact with node
-      cy.on('mouseover', 'node', (evt) => {
-        if (!evt.originalEvent.shiftKey && !evt.target.hasClass('selected')) {
-          evt.target.addClass("highlighted")
+      cy.on("tap", (evt) => {
+        const element = evt.target;
+        if (element !== cy && evt.originalEvent.ctrlKey) {
+          if (!selectedElements.includes(element.id())) {
+            element.addClass("hasSelected");
+            handleAddSelectedElements(element.id());
+          } else {
+            element.removeClass("hasSelected");
+            handleRemoveSelectedElements(element.id());
+          }
         }
       })
-
-      cy.on("mouseout", "node", (evt) => {
-        evt.target.removeClass("highlighted")
-      })
-
-
     },
-    [isDirectedGraph, handleMouseMove, handleResetCache]
+    [isDirectedGraph, handleMouseMove, handleResetCache, selectedElements]
   );
 
   return { handleEventListener };
