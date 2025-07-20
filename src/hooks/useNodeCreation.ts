@@ -7,12 +7,12 @@ import { useGraphStatusStore } from "../store/useGraphStatusStore";
 
 export const useNodeCreation = (
   cyInstanceRef: React.RefObject<Core | null>,
-  nodeCounterRef: React.RefObject<number>,
 ) => {
+
+  const { nodeCounter, initDegreeForNode } = useGraphStatusStore();
   const [isOpenDialog, setIsOpenDialog] = useState(false);
   const [labelNode, setLabelNode] = useState("");
   const nodePositionRef = useRef<{ x: number; y: number } | null>(null);
-
 
   const onLabelChange = (label: string) => {
     setLabelNode(label);
@@ -24,7 +24,7 @@ export const useNodeCreation = (
 
   const openNodeCreationDialog = (position: NodePosition) => {
     nodePositionRef.current = position;
-    setLabelNode(`Node ${nodeCounterRef.current}`);
+    setLabelNode(`Node ${nodeCounter}`);
     setIsOpenDialog(true);
   };
 
@@ -37,8 +37,7 @@ export const useNodeCreation = (
     if (cyInstanceRef.current && nodePositionRef.current) {
       const id = `node-${Date.now()}`;
       GraphService.addNode(cyInstanceRef.current, labelNode.trim(), nodePositionRef.current, id);
-      useGraphStatusStore.getState().initDegreeForNode(id);
-      nodeCounterRef.current += 1;
+      initDegreeForNode(id);
 
       setLabelNode("");
       nodePositionRef.current = null;

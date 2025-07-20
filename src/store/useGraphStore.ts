@@ -5,6 +5,7 @@ type State = {
 }
 
 type Action = {
+  handleResetSelectedElement: () => void,
   handleAddSelectedElements: (elementId: string) => void
   handleRemoveSelectedElements: (elementId: string) => void
 }
@@ -12,6 +13,9 @@ type Action = {
 export const useGraphStore = create<State & Action>((set) => ({
   selectedElements: [],
 
+  handleResetSelectedElement: () => {
+    set({ selectedElements: [] });
+  },
   handleAddSelectedElements: (elementId) => {
     set(prev => ({ selectedElements: [...prev.selectedElements.filter(id => id !== elementId), elementId] }))
   },

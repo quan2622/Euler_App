@@ -3,11 +3,10 @@ import type { NodePosition } from "../types/graph.type";
 
 export class GraphService {
 
-  static addNode = (cy: Core, label: string, position: NodePosition) => {
-    const id = `node-${Date.now()}`;
+  static addNode = (cy: Core, label: string, position: NodePosition, nodeId: string) => {
     cy.add({
       group: "nodes",
-      data: { id: id, label: label },
+      data: { id: nodeId, label: label },
       position: position,
     })
   };

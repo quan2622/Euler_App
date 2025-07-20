@@ -7,7 +7,6 @@ import { useGraphStatusStore } from "../store/useGraphStatusStore";
 
 interface useGraphEventsProps {
   isDirectedGraph: boolean,
-  edgeCounterRef: React.RefObject<number>,
   startNodeRef: React.RefObject<EdgeSingular | null>,
   dragSourceNodeIdRef: React.RefObject<string | null>,
   tempTargetNodeIdRef: React.RefObject<string | null>,
@@ -17,7 +16,6 @@ interface useGraphEventsProps {
 
 export const useGraphEvents = (
   { isDirectedGraph,
-    edgeCounterRef,
     startNodeRef,
     dragSourceNodeIdRef,
     tempTargetNodeIdRef,
@@ -143,7 +141,6 @@ export const useGraphEvents = (
           if (targetElement.isNode() && dragSourceNodeIdRef.current && targetElement.id()) {
             GraphService.addEdge(cy, dragSourceNodeIdRef.current, targetElement.id());
             updateNodeDegree(dragSourceNodeIdRef.current, targetElement.id(), isDirectedGraph);
-            edgeCounterRef.current += 1;
             handleResetCache(cy);
 
             dragSourceNodeIdRef.current = null;
@@ -176,7 +173,7 @@ export const useGraphEvents = (
         }
       })
     },
-    [isDirectedGraph, handleMouseMove, handleResetCache, selectedElements]
+    [isDirectedGraph, handleMouseMove, handleResetCache, selectedElements, openNodeCreationDialog]
   );
 
   return { handleEventListener };

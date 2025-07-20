@@ -8,8 +8,6 @@ import { useNodeCreation } from "../../hooks/useNodeCreation";
 
 interface GraphCanvasProps {
   cyInstanceRef: React.RefObject<Core | null>;
-  nodeCounterRef: React.RefObject<number>;
-  edgeCounterRef: React.RefObject<number>;
   startNodeRef: React.RefObject<EdgeSingular | null>;
   isDirectedGraph: boolean;
 }
@@ -17,8 +15,6 @@ interface GraphCanvasProps {
 const GraphCanvas = ({
   cyInstanceRef,
   isDirectedGraph,
-  nodeCounterRef,
-  edgeCounterRef,
   startNodeRef,
 }: GraphCanvasProps) => {
   const cyRef = useRef<HTMLDivElement>(null);
@@ -38,11 +34,10 @@ const GraphCanvas = ({
     toggleDialogOpen,
     openNodeCreationDialog,
     handleCreateNewNode,
-  } = useNodeCreation(cyInstanceRef, nodeCounterRef)
+  } = useNodeCreation(cyInstanceRef)
   // config handle event
   const { handleEventListener } = useGraphEvents({
     isDirectedGraph,
-    edgeCounterRef,
     startNodeRef,
     dragSourceNodeIdRef,
     tempTargetNodeIdRef,

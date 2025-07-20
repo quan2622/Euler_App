@@ -1,29 +1,27 @@
 import { useRef, useState } from "react"
 import type { Core, EdgeSingular } from "cytoscape";
-import type { GraphAnalysis } from "../types/graph.type";
 import GraphToolbar from "./components/GraphToolbar";
 import GraphCanvas from "./components/GraphCanvas";
+import { useGraphStatusStore } from "../store/useGraphStatusStore";
 
 const MainLayout = () => {
   const cyInstance = useRef<Core | null>(null);
   const [isDirectedGraph, setIsDirectedGraph] = useState(true);
 
-  const [graphAnalysis, setGraphAnalysis] = useState<GraphAnalysis>({
-    adjacencyMatrix: [],
-    adjacencyList: {},
-    nodeDegrees: {},
-    nodeLabels: [],
-  });
+  const { interconnects, nodeDegrees, adjacencyList, adjacencyMatrix, nodeLabels, nodeCounter, edgeCounter } = useGraphStatusStore();
+
 
   // Refs đếm số lượng node và edge để tạo ID duy nhất
-  const nodeCounterRef = useRef(1)
-  const edgeCounterRef = useRef(1)
   const startNodeRef = useRef<EdgeSingular | null>(null);
 
   // handle analystic
 
-  const onToggleDirected = () => {
-    setIsDirectedGraph(prev => !prev);
+  const onToggleDirected = (type?: boolean) => {
+    if (type === undefined) {
+      setIsDirectedGraph(prev => !prev);
+    } else {
+      setIsDirectedGraph(type);
+    }
   }
 
   return (
@@ -34,15 +32,14 @@ const MainLayout = () => {
             cyInstance={cyInstance}
             isDirectedGraph={isDirectedGraph}
             onToggleDirected={onToggleDirected}
-            edgeCounterRef={edgeCounterRef}
           />
-
+          <div className="h-20 w-full bg-white border-orange-600   border-2">
+            aaaaa
+          </div>
           {/* Graph Container */}
           <GraphCanvas
             cyInstanceRef={cyInstance}
             isDirectedGraph={isDirectedGraph}
-            nodeCounterRef={nodeCounterRef}
-            edgeCounterRef={edgeCounterRef}
             startNodeRef={startNodeRef}
           />
         </div>
