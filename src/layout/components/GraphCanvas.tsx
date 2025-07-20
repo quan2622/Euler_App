@@ -49,7 +49,7 @@ const GraphCanvas = ({
     if (cyInstanceRef.current) {
       handleEventListener(cyInstanceRef.current);
     }
-  }, [cyInstanceRef, handleEventListener]);
+  }, [handleEventListener]);
 
   return (
     <>

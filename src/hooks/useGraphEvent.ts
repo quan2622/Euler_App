@@ -103,14 +103,17 @@ export const useGraphEvents = (
 
       cy.on('dblclick', 'node', (evt) => {
         if (evt.target.isNode() && !evt.originalEvent.shiftKey) {
-          if (startNodeRef.current) {
-            cy.$id(startNodeRef.current.id()).removeClass('selected');
-          }
-          if (startNodeRef.current?.id() !== evt.target.id()) {
+          if (!startNodeRef.current) {
             startNodeRef.current = evt.target;
             cy.$id(evt.target.id()).addClass('selected');
           } else {
-            startNodeRef.current = null;
+            if (startNodeRef.current?.id() !== evt.target.id()) {
+              startNodeRef.current = evt.target;
+              cy.$id(evt.target.id()).addClass('selected');
+            } else {
+              cy.$id(startNodeRef.current.id()).removeClass('selected');
+              startNodeRef.current = null;
+            }
           }
         }
       })
@@ -173,7 +176,7 @@ export const useGraphEvents = (
         }
       })
     },
-    [isDirectedGraph, handleMouseMove, handleResetCache, selectedElements, openNodeCreationDialog]
+    [isDirectedGraph, startNodeRef.current, handleMouseMove, handleResetCache, selectedElements, openNodeCreationDialog]
   );
 
   return { handleEventListener };
