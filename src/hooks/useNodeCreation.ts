@@ -1,13 +1,18 @@
 import type { Core } from "cytoscape";
 import { useRef, useState } from "react";
 import { GraphService } from "../services/graphService";
-import type { GraphRefs, NodePosition } from "../types/graph.type";
+import type { NodePosition } from "../types/graph.type";
 import { toast } from "sonner";
+import { useGraphStatusStore } from "../store/useGraphStatusStore";
 
-export const useNodeCreation = (cy: Core, graphRefs: GraphRefs) => {
+export const useNodeCreation = (
+  cyInstanceRef: React.RefObject<Core | null>,
+  nodeCounterRef: React.RefObject<number>,
+) => {
   const [isOpenDialog, setIsOpenDialog] = useState(false);
   const [labelNode, setLabelNode] = useState("");
-  const nodePositionRef = useRef<NodePosition | null>(null);
+  const nodePositionRef = useRef<{ x: number; y: number } | null>(null);
+
 
   const onLabelChange = (label: string) => {
     setLabelNode(label);
@@ -19,7 +24,7 @@ export const useNodeCreation = (cy: Core, graphRefs: GraphRefs) => {
 
   const openNodeCreationDialog = (position: NodePosition) => {
     nodePositionRef.current = position;
-    setLabelNode(`Node ${graphRefs.nodeCounterRef.current}`);
+    setLabelNode(`Node ${nodeCounterRef.current}`);
     setIsOpenDialog(true);
   };
 
@@ -29,9 +34,11 @@ export const useNodeCreation = (cy: Core, graphRefs: GraphRefs) => {
       return;
     }
 
-    if (cy && nodePositionRef.current) {
-      GraphService.addNode(cy, labelNode.trim(), nodePositionRef.current);
-      graphRefs.nodeCounterRef.current += 1;
+    if (cyInstanceRef.current && nodePositionRef.current) {
+      const id = `node-${Date.now()}`;
+      GraphService.addNode(cyInstanceRef.current, labelNode.trim(), nodePositionRef.current, id);
+      useGraphStatusStore.getState().initDegreeForNode(id);
+      nodeCounterRef.current += 1;
 
       setLabelNode("");
       nodePositionRef.current = null;

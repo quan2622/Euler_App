@@ -1,37 +1,34 @@
 import { useCallback } from "react";
 import type { Core, EdgeSingular } from "cytoscape";
 import { GraphService } from "../services/graphService";
-import type { MouseEventObject } from "../types/graph.type";
+import type { MouseEventObject, NodePosition } from "../types/graph.type";
 import { useGraphStore } from "../store/useGraphStore";
+import { useGraphStatusStore } from "../store/useGraphStatusStore";
 
 interface useGraphEventsProps {
   isDirectedGraph: boolean,
-  nodeCounterRef: React.RefObject<number>,
   edgeCounterRef: React.RefObject<number>,
   startNodeRef: React.RefObject<EdgeSingular | null>,
   dragSourceNodeIdRef: React.RefObject<string | null>,
   tempTargetNodeIdRef: React.RefObject<string | null>,
   tempEdgeIdRef: React.RefObject<string | null>,
-  newNodePositionRef: React.RefObject<{ x: number; y: number } | null>,
-  onLableChange: (label: string) => void,
-  toggleDialog: (value: boolean) => void
+  openNodeCreationDialog: (position: NodePosition) => void
 }
 
 export const useGraphEvents = (
   { isDirectedGraph,
-    nodeCounterRef,
     edgeCounterRef,
     startNodeRef,
     dragSourceNodeIdRef,
     tempTargetNodeIdRef,
     tempEdgeIdRef,
-    newNodePositionRef,
-    onLableChange,
-    toggleDialog }: useGraphEventsProps
+    openNodeCreationDialog
+  }: useGraphEventsProps
 ) => {
 
 
   const { selectedElements, handleAddSelectedElements, handleRemoveSelectedElements } = useGraphStore();
+  const { updateNodeDegree } = useGraphStatusStore();
 
   const handleResetCache = useCallback((cy: Core) => {
     const tempIds = [tempEdgeIdRef.current, tempTargetNodeIdRef.current].filter((id) => id !== null);
@@ -102,9 +99,7 @@ export const useGraphEvents = (
       // Create new Node
       cy.on('dblclick', (evt) => {
         if (evt.target === cy) {
-          newNodePositionRef.current = evt.position;
-          onLableChange(`Node ${nodeCounterRef.current}`);
-          toggleDialog(true);
+          openNodeCreationDialog(evt.position);
         }
       })
 
@@ -147,6 +142,7 @@ export const useGraphEvents = (
           const targetElement = evt.target;
           if (targetElement.isNode() && dragSourceNodeIdRef.current && targetElement.id()) {
             GraphService.addEdge(cy, dragSourceNodeIdRef.current, targetElement.id());
+            updateNodeDegree(dragSourceNodeIdRef.current, targetElement.id(), isDirectedGraph);
             edgeCounterRef.current += 1;
             handleResetCache(cy);
 
