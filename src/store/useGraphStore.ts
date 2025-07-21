@@ -1,18 +1,24 @@
 import { create } from "zustand"
 
 type State = {
-  selectedElements: string[]
+  selectedElements: string[],
+  startNode: string,
 }
 
 type Action = {
   handleResetSelectedElement: () => void,
   handleAddSelectedElements: (elementId: string) => void
   handleRemoveSelectedElements: (elementId: string) => void
+  handleSetStartNode: (newStartNode: string) => void
 }
 
 export const useGraphStore = create<State & Action>((set) => ({
   selectedElements: [],
+  startNode: "",
 
+  handleSetStartNode: (newStartNode: string) => {
+    set({ startNode: newStartNode })
+  },
   handleResetSelectedElement: () => {
     set({ selectedElements: [] });
   },

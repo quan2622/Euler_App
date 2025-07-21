@@ -1,14 +1,15 @@
-import { type Core, type EdgeSingular } from "cytoscape";
+import { type Core, type NodeSingular } from "cytoscape";
 import { useEffect, useRef } from "react";
 import CreateNodeDialog from "./CreateNodeDialog";
 import { useCytoscapeInstance } from "../../hooks/useCytoscapeInstance";
 import { useGraphEvents } from "../../hooks/useGraphEvent";
 import { useAnalystis } from "../../hooks/useAnalystis";
 import { useNodeCreation } from "../../hooks/useNodeCreation";
+import { useGraphStatusStore } from "../../store/useGraphStatusStore";
 
 interface GraphCanvasProps {
   cyInstanceRef: React.RefObject<Core | null>;
-  startNodeRef: React.RefObject<EdgeSingular | null>;
+  startNodeRef: React.RefObject<NodeSingular | null>;
   isDirectedGraph: boolean;
 }
 
@@ -17,6 +18,8 @@ const GraphCanvas = ({
   isDirectedGraph,
   startNodeRef,
 }: GraphCanvasProps) => {
+
+  const { isReady } = useGraphStatusStore();
   const cyRef = useRef<HTMLDivElement>(null);
   const dragSourceNodeIdRef = useRef<string | null>(null)
   const tempTargetNodeIdRef = useRef<string | null>(null)
@@ -49,7 +52,7 @@ const GraphCanvas = ({
     if (cyInstanceRef.current) {
       handleEventListener(cyInstanceRef.current);
     }
-  }, [handleEventListener]);
+  }, [cyInstanceRef, handleEventListener, isReady]);
 
   return (
     <>

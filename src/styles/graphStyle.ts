@@ -51,7 +51,7 @@ export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
 
   // Style cho elements được chọn
   {
-    selector: "node.selected",
+    selector: "node.start",
     css: {
       // "background-color": "#EF4444", // Màu đỏ khi được chọn
       // "line-color": "#EF4444",

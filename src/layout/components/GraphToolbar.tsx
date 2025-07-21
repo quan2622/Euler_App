@@ -13,17 +13,19 @@ import { Input } from "../../components/ui/input";
 interface GraphToolbarProps {
   cyInstance: React.RefObject<Core | null>,
   isDirectedGraph: boolean,
+  startNodeRef: React.RefObject<NodeSingular | null>
   onToggleDirected: (type?: boolean) => void,
 }
 
 const GraphToolbar = ({
   cyInstance,
   isDirectedGraph,
+  startNodeRef,
   onToggleDirected
 }: GraphToolbarProps) => {
 
-  const { selectedElements, handleResetSelectedElement } = useGraphStore();
-  const { updateNodeDegree, handleResetStatus, handleLoadStatusFormFile } = useGraphStatusStore();
+  const { selectedElements, handleResetSelectedElement, startNode, handleSetStartNode } = useGraphStore();
+  const { updateNodeDegree, handleResetStatus, handleLoadStatusFormFile, nodeLabels } = useGraphStatusStore();
   const [currentLayout, setCurrentLayout] = useState("grid");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -229,6 +231,16 @@ const GraphToolbar = ({
     fileInputRef.current?.click();
   }
 
+  const handleChangStart = (value: string) => {
+    handleSetStartNode(value);
+
+    const nodes = cyInstance.current?.nodes();
+    const startNode = nodes?.filter((node) => node.data("label") === value).first();
+    if (startNode?.nonempty() && startNode.isNode()) {
+      startNodeRef.current = startNode;
+    }
+  }
+
   return (
     <div className="h-60 w-full border-red-600 border-2">
       toolbars
@@ -264,6 +276,17 @@ const GraphToolbar = ({
         <Button variant={"outline"} onClick={handleUploadClick}><FileUp /> Tải lên đồ thị </Button>
         <Input className="hidden" type="file" accept=".json" ref={fileInputRef} onChange={importGraph} />
       </div>
+
+      <Select value={startNode} onValueChange={handleChangStart}>
+        <SelectTrigger className="w-[180px] bg-pink-200">
+          <SelectValue placeholder="Chọn đỉnh bắt đầu" />
+        </SelectTrigger>
+        <SelectContent>
+          {nodeLabels && nodeLabels.length > 0 && nodeLabels.map((label, index) => (
+            <SelectItem value={label} key={index}>{label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   )
 }

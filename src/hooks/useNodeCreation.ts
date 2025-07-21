@@ -1,5 +1,5 @@
 import type { Core } from "cytoscape";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { GraphService } from "../services/graphService";
 import type { NodePosition } from "../types/graph.type";
 import { toast } from "sonner";
@@ -22,13 +22,13 @@ export const useNodeCreation = (
     setIsOpenDialog(prev => !prev);
   }
 
-  const openNodeCreationDialog = (position: NodePosition) => {
+  const openNodeCreationDialog = useCallback((position: NodePosition) => {
     nodePositionRef.current = position;
     setLabelNode(`Node ${nodeCounter}`);
     setIsOpenDialog(true);
-  };
+  }, [nodeCounter]);
 
-  const handleCreateNewNode = () => {
+  const handleCreateNewNode = useCallback(() => {
     if (labelNode.trim() === "") {
       toast.warning("Vui lòng điền tên cho Node!");
       return;
@@ -43,7 +43,7 @@ export const useNodeCreation = (
       nodePositionRef.current = null;
       setIsOpenDialog(false);
     }
-  };
+  }, [labelNode]);
 
 
   return {

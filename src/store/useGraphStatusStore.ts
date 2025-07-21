@@ -2,6 +2,8 @@ import { create } from "zustand"
 
 
 type State = {
+  isReady: boolean,
+
   interconnects: string[][],
   nodeDegrees: { [key: string]: { in: number, out: number, total: number } },
   adjacencyMatrix: number[][],
@@ -22,9 +24,11 @@ type Action = {
   ) => void,
   handleResetStatus: () => void,
   handleLoadStatusFormFile: (nodeCounter: number, edgeCounter: number) => void,
+  handleInit: () => void
 }
 
 export const useGraphStatusStore = create<State & Action>((set) => ({
+  isReady: false,
   interconnects: [],
   nodeDegrees: {},
   adjacencyMatrix: [],
@@ -33,6 +37,9 @@ export const useGraphStatusStore = create<State & Action>((set) => ({
   edgeCounter: 1,
   nodeCounter: 1,
 
+  handleInit: () => {
+    set({ isReady: true });
+  },
   handleResetStatus: () => {
     set({ nodeCounter: 1, edgeCounter: 1 });
   },

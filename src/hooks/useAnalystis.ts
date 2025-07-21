@@ -18,6 +18,7 @@ export const useAnalystis = (
 
     const nodeIds = nodes.map(node => node.id());
     const nodeLabels = nodes.map(node => node.data("label"));
+    console.log("here");
     const nodeIndexMap: { [key: string]: number } = {};
 
     // Ma trận kề
@@ -40,7 +41,7 @@ export const useAnalystis = (
 
     // Danh sách kề
     const adjacencyList: { [key: string]: string[] } = {};
-    nodeIds.map((id) => adjacencyList[id] = []);
+    nodeLabels.map((label) => adjacencyList[label] = []);
 
     edges.forEach((edge: EdgeSingular) => {
       const sourceId = edge.source().id();
@@ -48,13 +49,13 @@ export const useAnalystis = (
       const sourceLabel = edge.source().data("label") || sourceId;
       const targetLabel = edge.target().data("label") || targetId;
 
-      adjacencyList[sourceId].push(targetLabel);
+      adjacencyList[sourceLabel].push(targetLabel);
       if (!isDirectedGraph)
-        adjacencyList[targetId].push(sourceLabel);
+        adjacencyList[targetLabel].push(sourceLabel);
     })
 
     updateAnalysis(adjacencyMatix, adjacencyList, nodeLabels);
-  }, [isDirectedGraph]);
+  }, [isDirectedGraph, updateAnalysis]);
 
   const findInterConnection = useCallback(() => {
     if (!cyInstanceRef.current) return;
@@ -116,6 +117,6 @@ export const useAnalystis = (
     return () => {
       cy.off("add remove", updateAnalystis);
     }
-  }, [handleUpdateInterConnect]);
+  }, [handleUpdateInterConnect, isDirectedGraph]);
 
 }

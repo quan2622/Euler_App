@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { Core, EdgeSingular } from "cytoscape";
+import type { Core, NodeSingular } from "cytoscape";
 import { GraphService } from "../services/graphService";
 import type { MouseEventObject, NodePosition } from "../types/graph.type";
 import { useGraphStore } from "../store/useGraphStore";
@@ -7,7 +7,7 @@ import { useGraphStatusStore } from "../store/useGraphStatusStore";
 
 interface useGraphEventsProps {
   isDirectedGraph: boolean,
-  startNodeRef: React.RefObject<EdgeSingular | null>,
+  startNodeRef: React.RefObject<NodeSingular | null>,
   dragSourceNodeIdRef: React.RefObject<string | null>,
   tempTargetNodeIdRef: React.RefObject<string | null>,
   tempEdgeIdRef: React.RefObject<string | null>,
@@ -101,22 +101,23 @@ export const useGraphEvents = (
         }
       })
 
-      cy.on('dblclick', 'node', (evt) => {
-        if (evt.target.isNode() && !evt.originalEvent.shiftKey) {
-          if (!startNodeRef.current) {
-            startNodeRef.current = evt.target;
-            cy.$id(evt.target.id()).addClass('selected');
-          } else {
-            if (startNodeRef.current?.id() !== evt.target.id()) {
-              startNodeRef.current = evt.target;
-              cy.$id(evt.target.id()).addClass('selected');
-            } else {
-              cy.$id(startNodeRef.current.id()).removeClass('selected');
-              startNodeRef.current = null;
-            }
-          }
-        }
-      })
+      // cy.on('dblclick', 'node', (evt) => {
+      //   if (evt.target.isNode() && evt.originalEvent.altKey) {
+      //     if (!startNodeRef.current) {
+      //       startNodeRef.current = evt.target;
+      //       cy.$id(evt.target.id()).addClass('start');
+      //     } else {
+      //       if (startNodeRef.current?.id() !== evt.target.id()) {
+      //         cy.nodes().removeClass("start");
+      //         startNodeRef.current = evt.target;
+      //         cy.$id(evt.target.id()).addClass('start');
+      //       } else {
+      //         cy.$id(startNodeRef.current.id()).removeClass('start');
+      //         startNodeRef.current = null;
+      //       }
+      //     }
+      //   }
+      // })
 
       // Start create Edge
       cy.on('mousedown', 'node', (evt) => {
@@ -176,7 +177,7 @@ export const useGraphEvents = (
         }
       })
     },
-    [isDirectedGraph, startNodeRef.current, handleMouseMove, handleResetCache, selectedElements, openNodeCreationDialog]
+    [isDirectedGraph, startNodeRef, handleMouseMove, handleResetCache, selectedElements, openNodeCreationDialog]
   );
 
   return { handleEventListener };

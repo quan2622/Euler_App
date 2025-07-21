@@ -2,12 +2,16 @@ import { useEffect } from "react";
 import cytoscape, { type Core } from "cytoscape";
 import { getCytoscapeStyle } from "../styles/graphStyle";
 import { GraphService } from "../services/graphService";
+import { useGraphStatusStore } from "../store/useGraphStatusStore";
 
 export const useCytoscapeInstance = (
   cyRef: React.RefObject<HTMLDivElement | null>,
   cyInstanceRef: React.RefObject<Core | null>,
   isDirectedGraph: boolean
 ) => {
+
+  const { handleInit } = useGraphStatusStore();
+
   useEffect(() => {
     if (!cyRef.current) return;
 
@@ -28,6 +32,7 @@ export const useCytoscapeInstance = (
 
     cyInstanceRef.current = cy;
     GraphService.handleLimitNodeOnScreen(cy, cyRef);
+    handleInit();
 
     return () => {
       cy.destroy();
