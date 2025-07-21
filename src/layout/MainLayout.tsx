@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import type { Core, NodeSingular } from "cytoscape";
 import GraphToolbar from "./components/GraphToolbar";
 import GraphCanvas from "./components/GraphCanvas";
@@ -10,31 +10,14 @@ const MainLayout = () => {
   const [isDirectedGraph, setIsDirectedGraph] = useState(false);
   const startNodeRef = useRef<NodeSingular | null>(null);
 
-  const { isReady, interconnects, nodeDegrees, adjacencyList, adjacencyMatrix, nodeLabels, nodeCounter, edgeCounter } = useGraphStatusStore();
-
-  useEffect(() => {
-    const cy = cyInstance.current;
-    if (!cy || !isReady) return;
-    console.log("Check isReady", isReady);
-
-    cy.on('dblclick', 'node', (evt) => {
-      if (evt.target.isNode() && evt.originalEvent.altKey) {
-        if (!startNodeRef.current) {
-          startNodeRef.current = evt.target;
-          cy.$id(evt.target.id()).addClass('start');
-        } else {
-          if (startNodeRef.current?.id() !== evt.target.id()) {
-            cy.nodes().removeClass("start");
-            startNodeRef.current = evt.target;
-            cy.$id(evt.target.id()).addClass('start');
-          } else {
-            cy.$id(startNodeRef.current.id()).removeClass('start');
-            startNodeRef.current = null;
-          }
-        }
-      }
-    })
-  }, [isReady, isDirectedGraph]);
+  const { adjacencyList,
+    interconnects,
+    nodeDegrees,
+    adjacencyMatrix,
+    nodeLabels,
+    edgeCounter,
+    nodeCounter,
+  } = useGraphStatusStore();
 
 
   const onToggleDirected = (type?: boolean) => {
@@ -145,7 +128,17 @@ const MainLayout = () => {
     console.log("Check Euler Path: ", eulerPath.reverse());
   }, [isDirectedGraph, adjacencyList]);
 
-  console.log("Check ajdList: ", adjacencyList);
+
+  console.group('📊 Graph Status');
+  console.log('🔗 Adjacency List:', adjacencyList);
+  console.log("Check start node ref: ", startNodeRef.current?.data("label"));
+  console.log('🔁 Interconnects:', interconnects);
+  console.log('📈 Node Degrees:', nodeDegrees);
+  console.log('🧮 Adjacency Matrix:', adjacencyMatrix);
+  console.log('🏷️ Node Labels:', nodeLabels);
+  console.log('➕ Edge Counter:', edgeCounter);
+  console.log('🔢 Node Counter:', nodeCounter);
+  console.groupEnd();
 
   return (
     <>

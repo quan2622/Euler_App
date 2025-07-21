@@ -101,23 +101,23 @@ export const useGraphEvents = (
         }
       })
 
-      // cy.on('dblclick', 'node', (evt) => {
-      //   if (evt.target.isNode() && evt.originalEvent.altKey) {
-      //     if (!startNodeRef.current) {
-      //       startNodeRef.current = evt.target;
-      //       cy.$id(evt.target.id()).addClass('start');
-      //     } else {
-      //       if (startNodeRef.current?.id() !== evt.target.id()) {
-      //         cy.nodes().removeClass("start");
-      //         startNodeRef.current = evt.target;
-      //         cy.$id(evt.target.id()).addClass('start');
-      //       } else {
-      //         cy.$id(startNodeRef.current.id()).removeClass('start');
-      //         startNodeRef.current = null;
-      //       }
-      //     }
-      //   }
-      // })
+      cy.on('dblclick', 'node', (evt) => {
+        if (evt.target.isNode() && evt.originalEvent.altKey) {
+          if (!startNodeRef.current) {
+            startNodeRef.current = evt.target;
+            cy.$id(evt.target.id()).addClass('start');
+          } else {
+            if (startNodeRef.current?.id() !== evt.target.id()) {
+              cy.nodes().removeClass("start");
+              startNodeRef.current = evt.target;
+              cy.$id(evt.target.id()).addClass('start');
+            } else {
+              cy.$id(startNodeRef.current.id()).removeClass('start');
+              startNodeRef.current = null;
+            }
+          }
+        }
+      })
 
       // Start create Edge
       cy.on('mousedown', 'node', (evt) => {

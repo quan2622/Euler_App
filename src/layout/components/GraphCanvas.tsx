@@ -6,6 +6,7 @@ import { useGraphEvents } from "../../hooks/useGraphEvent";
 import { useAnalystis } from "../../hooks/useAnalystis";
 import { useNodeCreation } from "../../hooks/useNodeCreation";
 import { useGraphStatusStore } from "../../store/useGraphStatusStore";
+import { getCytoscapeStyle } from "../../styles/graphStyle";
 
 interface GraphCanvasProps {
   cyInstanceRef: React.RefObject<Core | null>;
@@ -49,10 +50,19 @@ const GraphCanvas = ({
   });
 
   useEffect(() => {
-    if (cyInstanceRef.current) {
-      handleEventListener(cyInstanceRef.current);
-    }
-  }, [cyInstanceRef, handleEventListener, isReady]);
+    const cy = cyInstanceRef.current;
+    if (!cy || !isReady) return;
+    handleEventListener(cy);
+  }, [isReady]);
+
+
+  useEffect(() => {
+    const cy = cyInstanceRef.current;
+    if (!cy) return;
+
+    cy.style(getCytoscapeStyle(isDirectedGraph));
+
+  }, [isDirectedGraph]);
 
   return (
     <>

@@ -37,5 +37,5 @@ export const useCytoscapeInstance = (
     return () => {
       cy.destroy();
     }
-  }, [getCytoscapeStyle, cyRef, isDirectedGraph, cyInstanceRef]);
+  }, [getCytoscapeStyle]);
 }
