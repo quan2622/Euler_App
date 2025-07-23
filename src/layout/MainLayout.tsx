@@ -83,14 +83,11 @@ const MainLayout = () => {
     const cy = cyInstance.current;
     if (!cy) return;
 
-    let start = startNodeRef.current?.data("label");
-
     const adjList = Object.fromEntries(
       Object.entries(adjacencyList).map(([k, v]) => [k, [...v]])
     );
 
-
-    console.log("Check start node: ", start);
+    let start = startNodeRef.current?.data("label");
     if (!start) {
       for (const node of Object.keys(adjList)) {
         if (adjList[node].length > 0) {
@@ -99,33 +96,34 @@ const MainLayout = () => {
         }
       }
     }
-
     if (!start) return [];
 
-    const eulerPath: string[] = [];
+    const eulerCircle: string[] = [];
     const stack: string[] = [start];
 
     while (stack.length > 0) {
       const curr = stack[stack.length - 1];
-      console.log("Check list: ", adjList[curr], " - ", curr);
       if (adjList[curr].length > 0) {
         const next = adjList[curr].pop();
-        if (!isDirectedGraph) {
-          const index = adjList[next!].indexOf(curr);
-          if (index > -1) {
-            adjList[next!].splice(index, 1);
-          }
+        if (!isDirectedGraph && next) {
+          const index = adjList[next].indexOf(curr);
+          adjList[next].splice(index, 1);
         }
         stack.push(next!);
       } else {
-        eulerPath.push(stack.pop()!)
+        eulerCircle.push(stack.pop()!)
       }
     };
 
-    // return eulerPath.reverse();
+    // return eulerCircle.reverse();
 
-    console.log("Check Euler Path: ", eulerPath.reverse());
+    console.log("Check Euler Path: ", eulerCircle.reverse());
   }, [isDirectedGraph, adjacencyList]);
+
+  // Thuật toán Fleury
+
+
+
 
 
   // console.group('📊 Graph Status');
@@ -162,8 +160,9 @@ const MainLayout = () => {
             startNodeRef={startNodeRef}
           />
         </div>
-        <div className="w-96 border-blue-600 border-2">
-          <Button onClick={findEulerPath}>Euler</Button>
+        <div className="w-96 border-blue-600 border-2 flex flex-col gap-2">
+          <Button onClick={findEulerPath}>Euler with Hierholzer</Button>
+          <Button onClick={findEulerPath}>Euler with Fleury</Button>
         </div>
       </div>
     </>

@@ -18,7 +18,6 @@ export const useAnalystis = (
 
     const nodeIds = nodes.map(node => node.id());
     const nodeLabels = nodes.map(node => node.data("label"));
-    console.log("here");
     const nodeIndexMap: { [key: string]: number } = {};
 
     // Ma trận kề
@@ -53,6 +52,11 @@ export const useAnalystis = (
       if (!isDirectedGraph)
         adjacencyList[targetLabel].push(sourceLabel);
     })
+
+    // Sắp xếp các mảng trong danh sách kề
+    for (const [key, value] of Object.entries(adjacencyList)) {
+      adjacencyList[key] = value.sort((a, b) => a.localeCompare(b));
+    }
 
     updateAnalysis(adjacencyMatix, adjacencyList, nodeLabels);
   }, [isDirectedGraph, updateAnalysis]);

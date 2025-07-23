@@ -90,23 +90,37 @@ const GraphToolbar = ({
     const cy = cyInstance.current;
     if (!cy) return;
 
-    const nodeIds = new Set(selectedElements);
-    const selectedNodes = cy.nodes().filter(node => nodeIds.has(node.id()));
+    const elementIds = new Set(selectedElements);
+    const selectedNodes = cy.nodes().filter(node => elementIds.has(node.id()));
+    const selectedEdges = cy.edges().filter(edge => elementIds.has(edge.id()));
 
-    selectedNodes.forEach(node => {
-      const connectedEdges = node.connectedEdges();
-      connectedEdges.forEach(edge => {
+    if (selectedNodes && selectedNodes.length > 0) {
+      selectedNodes.forEach(node => {
+        const connectedEdges = node.connectedEdges();
+        connectedEdges.forEach(edge => {
+          const sourceId = edge.source().id();
+          const targetId = edge.target().id();
+
+          if (!(elementIds.has(sourceId) && elementIds.has(targetId))) {
+            edge.remove();
+            updateNodeDegree(sourceId, targetId, isDirectedGraph, false);
+          }
+
+        });
+      });
+
+      selectedNodes.remove();
+    }
+    if (selectedEdges && selectedEdges.length > 0) {
+      selectedEdges.forEach((edge: EdgeSingular) => {
         const sourceId = edge.source().id();
         const targetId = edge.target().id();
-
-        if (!(nodeIds.has(sourceId) && nodeIds.has(targetId))) {
-          edge.remove();
-          updateNodeDegree(sourceId, targetId, isDirectedGraph, false);
-        }
+        updateNodeDegree(sourceId, targetId, isDirectedGraph, false);
 
       });
-    });
-    selectedNodes.remove();
+      selectedEdges.remove();
+    }
+    handleResetSelectedElement();
   }, [isDirectedGraph, selectedElements]);
 
   const clearGraph = useCallback(() => {
@@ -232,11 +246,14 @@ const GraphToolbar = ({
   }
 
   const handleChangStart = (value: string) => {
+    if (!cyInstance.current) return;
     handleSetStartNode(value);
 
     const nodes = cyInstance.current?.nodes();
+    nodes.removeClass("start");
     const startNode = nodes?.filter((node) => node.data("label") === value).first();
-    if (startNode?.nonempty() && startNode.isNode()) {
+    startNode.addClass("start");
+    if (startNode.nonempty() && startNode.isNode()) {
       startNodeRef.current = startNode;
     }
   }
@@ -282,6 +299,7 @@ const GraphToolbar = ({
           <SelectValue placeholder="Chọn đỉnh bắt đầu" />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="none" disabled>-- Chọn đỉnh bắt đầu --</SelectItem>
           {nodeLabels && nodeLabels.length > 0 && nodeLabels.map((label, index) => (
             <SelectItem value={label} key={index}>{label}</SelectItem>
           ))}
