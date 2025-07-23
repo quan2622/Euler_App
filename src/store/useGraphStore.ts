@@ -17,7 +17,7 @@ export const useGraphStore = create<State & Action>((set) => ({
   startNode: "",
 
   handleSetStartNode: (newStartNode: string) => {
-    set({ startNode: newStartNode })
+    set({ startNode: newStartNode }) //node label
   },
   handleResetSelectedElement: () => {
     set({ selectedElements: [] });

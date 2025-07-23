@@ -56,12 +56,12 @@ const GraphCanvas = ({
   }, [isReady]);
 
 
+  // update style when toggle directed-graph
   useEffect(() => {
     const cy = cyInstanceRef.current;
     if (!cy) return;
 
     cy.style(getCytoscapeStyle(isDirectedGraph));
-
   }, [isDirectedGraph]);
 
   return (

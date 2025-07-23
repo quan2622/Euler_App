@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { Core, NodeSingular } from "cytoscape";
 import { GraphService } from "../services/graphService";
 import type { MouseEventObject, NodePosition } from "../types/graph.type";
@@ -25,8 +25,15 @@ export const useGraphEvents = (
 ) => {
 
 
-  const { selectedElements, handleAddSelectedElements, handleRemoveSelectedElements } = useGraphStore();
+  const { selectedElements, handleSetStartNode, handleAddSelectedElements, handleRemoveSelectedElements } = useGraphStore();
   const { updateNodeDegree } = useGraphStatusStore();
+
+  // update selected elements
+  const selectedElementsRef = useRef<string[]>(selectedElements);
+  useEffect(() => {
+    selectedElementsRef.current = selectedElements;
+  }, [selectedElements]);
+
 
   const handleResetCache = useCallback((cy: Core) => {
     const tempIds = [tempEdgeIdRef.current, tempTargetNodeIdRef.current].filter((id) => id !== null);
@@ -106,14 +113,17 @@ export const useGraphEvents = (
           if (!startNodeRef.current) {
             startNodeRef.current = evt.target;
             cy.$id(evt.target.id()).addClass('start');
+            handleSetStartNode(cy.$id(evt.target.id()).data("label"));
           } else {
             if (startNodeRef.current?.id() !== evt.target.id()) {
               cy.nodes().removeClass("start");
               startNodeRef.current = evt.target;
               cy.$id(evt.target.id()).addClass('start');
+              handleSetStartNode(cy.$id(evt.target.id()).data("label"));
             } else {
               cy.$id(startNodeRef.current.id()).removeClass('start');
               startNodeRef.current = null;
+              handleSetStartNode("");
             }
           }
         }
@@ -164,10 +174,11 @@ export const useGraphEvents = (
         }
       })
 
+      // select element
       cy.on("tap", (evt) => {
         const element = evt.target;
         if (element !== cy && evt.originalEvent.ctrlKey) {
-          if (!selectedElements.includes(element.id())) {
+          if (!selectedElementsRef.current.includes(element.id())) {
             element.addClass("hasSelected");
             handleAddSelectedElements(element.id());
           } else {
@@ -177,7 +188,7 @@ export const useGraphEvents = (
         }
       })
     },
-    [isDirectedGraph, startNodeRef, handleMouseMove, handleResetCache, selectedElements, openNodeCreationDialog]
+    [isDirectedGraph, handleMouseMove, handleResetCache, openNodeCreationDialog, handleAddSelectedElements, handleRemoveSelectedElements, handleSetStartNode]
   );
 
   return { handleEventListener };

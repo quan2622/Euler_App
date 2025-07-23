@@ -10,15 +10,7 @@ const MainLayout = () => {
   const [isDirectedGraph, setIsDirectedGraph] = useState(false);
   const startNodeRef = useRef<NodeSingular | null>(null);
 
-  const { adjacencyList,
-    interconnects,
-    nodeDegrees,
-    adjacencyMatrix,
-    nodeLabels,
-    edgeCounter,
-    nodeCounter,
-  } = useGraphStatusStore();
-
+  const { adjacencyList } = useGraphStatusStore();
 
   const onToggleDirected = (type?: boolean) => {
     if (type === undefined) {
@@ -92,9 +84,16 @@ const MainLayout = () => {
     if (!cy) return;
 
     let start = startNodeRef.current?.data("label");
+
+    const adjList = Object.fromEntries(
+      Object.entries(adjacencyList).map(([k, v]) => [k, [...v]])
+    );
+
+
+    console.log("Check start node: ", start);
     if (!start) {
-      for (const node of Object.keys(adjacencyList)) {
-        if (adjacencyList[node].length > 0) {
+      for (const node of Object.keys(adjList)) {
+        if (adjList[node].length > 0) {
           start = node;
           break;
         }
@@ -108,13 +107,13 @@ const MainLayout = () => {
 
     while (stack.length > 0) {
       const curr = stack[stack.length - 1];
-      console.log("Check list: ", adjacencyList[curr], " - ", curr);
-      if (adjacencyList[curr].length > 0) {
-        const next = adjacencyList[curr].pop();
+      console.log("Check list: ", adjList[curr], " - ", curr);
+      if (adjList[curr].length > 0) {
+        const next = adjList[curr].pop();
         if (!isDirectedGraph) {
-          const index = adjacencyList[next!].indexOf(curr);
+          const index = adjList[next!].indexOf(curr);
           if (index > -1) {
-            adjacencyList[next!].splice(index, 1);
+            adjList[next!].splice(index, 1);
           }
         }
         stack.push(next!);
@@ -129,16 +128,19 @@ const MainLayout = () => {
   }, [isDirectedGraph, adjacencyList]);
 
 
-  console.group('📊 Graph Status');
+  // console.group('📊 Graph Status');
   console.log('🔗 Adjacency List:', adjacencyList);
-  console.log("Check start node ref: ", startNodeRef.current?.data("label"));
-  console.log('🔁 Interconnects:', interconnects);
-  console.log('📈 Node Degrees:', nodeDegrees);
-  console.log('🧮 Adjacency Matrix:', adjacencyMatrix);
-  console.log('🏷️ Node Labels:', nodeLabels);
-  console.log('➕ Edge Counter:', edgeCounter);
-  console.log('🔢 Node Counter:', nodeCounter);
-  console.groupEnd();
+  // console.log("Check start node ref: ", startNodeRef.current?.data("label"));
+  // console.log('🔁 Interconnects:', interconnects);
+  // console.log('📈 Node Degrees:', nodeDegrees);
+  // console.log('🧮 Adjacency Matrix:', adjacencyMatrix);
+  // console.log('🏷️ Node Labels:', nodeLabels);
+  // console.log('➕ Edge Counter:', edgeCounter);
+  // console.log('🔢 Node Counter:', nodeCounter);
+  // console.groupEnd();
+
+  // *note: KT chạy thuật toán euler tìm cách để có thẻ chỉ cần thay thế đoạn thuật toán thành thuật toán khác || chạy code thì tô đậm phần đang chạy lên
+
 
   return (
     <>

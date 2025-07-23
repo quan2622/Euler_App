@@ -1,5 +1,5 @@
 import type { Core } from "cytoscape";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { GraphService } from "../services/graphService";
 import type { NodePosition } from "../types/graph.type";
 import { toast } from "sonner";
@@ -13,6 +13,10 @@ export const useNodeCreation = (
   const [isOpenDialog, setIsOpenDialog] = useState(false);
   const [labelNode, setLabelNode] = useState("");
   const nodePositionRef = useRef<{ x: number; y: number } | null>(null);
+  const nodeCounterRef = useRef<number>(nodeCounter);
+  useEffect(() => {
+    nodeCounterRef.current = nodeCounter;
+  }, [nodeCounter]);
 
   const onLabelChange = (label: string) => {
     setLabelNode(label);
@@ -21,12 +25,11 @@ export const useNodeCreation = (
   const toggleDialogOpen = () => {
     setIsOpenDialog(prev => !prev);
   }
-
-  const openNodeCreationDialog = useCallback((position: NodePosition) => {
+  const openNodeCreationDialog = (position: NodePosition) => {
     nodePositionRef.current = position;
-    setLabelNode(`Node ${nodeCounter}`);
+    setLabelNode(`Node ${nodeCounterRef.current}`);
     setIsOpenDialog(true);
-  }, [nodeCounter]);
+  };
 
   const handleCreateNewNode = useCallback(() => {
     if (labelNode.trim() === "") {
@@ -43,8 +46,7 @@ export const useNodeCreation = (
       nodePositionRef.current = null;
       setIsOpenDialog(false);
     }
-  }, [labelNode]);
-
+  }, [labelNode, initDegreeForNode]);
 
   return {
     isOpenDialog,
