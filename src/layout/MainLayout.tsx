@@ -117,10 +117,162 @@ const MainLayout = () => {
 
     // return eulerCircle.reverse();
 
-    console.log("Check Euler Path: ", eulerCircle.reverse());
+    console.log("Check Euler Path with Hierholzer: ", eulerCircle.reverse());
   }, [isDirectedGraph, adjacencyList]);
 
   // Thuật toán Fleury
+  const counNodeWithDFS = (u: string, adjArr: string[], visited: Map<string, boolean>): number => {
+    visited.set(u, true);
+    let count = 1;
+    for (const item of adjArr) {
+      if (!visited.get(u))
+        count += counNodeWithDFS(item, adjArr, visited);
+    }
+    return count;
+  }
+
+  const isBridge = (u: string, v: string, adjList: { [key: string]: string[] }) => {
+    const visited = new Map<string, boolean>();
+    for (const [key, value] of Object.entries(adjList)) {
+      visited.set(key, false);
+    }
+
+    const count_before = counNodeWithDFS(u, adjList[u], visited);
+
+    const adjList_clone = Object.fromEntries(
+      Object.entries(adjList).map(([k, v]) => [k, [...v]])
+    );
+
+    let index = adjList_clone[u].indexOf(v);
+    adjList_clone[u].splice(index, 1);
+    if (!isDirectedGraph) {
+      index = adjList_clone[v].indexOf(u);
+      adjList_clone[v].splice(index, 1);
+    }
+
+    for (const [key, value] of Object.entries(adjList)) {
+      visited.set(key, false);
+    }
+    const count_after = counNodeWithDFS(u, adjList_clone[u], visited);
+
+    return count_before > count_after;
+  }
+
+  const eulerWithFleury = () => {
+    const cy = cyInstance.current;
+    if (!cy) return;
+
+    const adjList = Object.fromEntries(
+      Object.entries(adjacencyList).map(([k, v]) => [k, [...v]])
+    );
+
+    console.log("Check adjList: ", JSON.stringify(adjList, null, 2));
+
+    let start = startNodeRef.current?.data("label");
+    if (!start) {
+      for (const node of Object.keys(adjList)) {
+        if (adjList[node].length > 0) {
+          start = node;
+          break;
+        }
+      }
+    }
+    if (!start) return [];
+
+    console.log("Check start: ", start);
+
+    const eulerCircle: string[] = [];
+    const stack: string[] = [start];
+
+    while (stack.length > 0) {
+      const u = stack[stack.length - 1];
+
+      if (adjList[u].length > 0) {
+        let v = adjList[u][adjList[u].length - 1];
+        console.log("Check v: ", v);
+        for (const next of [...adjList[u]].reverse()) {
+          if (!isBridge(u, next, adjList)) {
+            v = next;
+            break;
+          }
+        }
+
+        stack.push(v!);
+        let index = adjList[u].indexOf(v);
+        const next = adjList[u][index];
+        console.log("Check next: ", next);
+        adjList[u].splice(index, 1);
+        if (!isDirectedGraph && next) {
+          index = adjList[next].indexOf(u);
+          adjList[next].splice(index, 1);
+        }
+      } else {
+        eulerCircle.push(stack.pop()!)
+      }
+    }
+
+    // return eulerCircle.reverse();
+    console.log("Check Euler Path With Fleury: ", eulerCircle.reverse());
+  }
+
+
+  // DFS_Base
+  const aulerWothDFS_Base = () => {
+    const cy = cyInstance.current;
+    if (!cy) return;
+
+    const adjList = Object.fromEntries(
+      Object.entries(adjacencyList).map(([k, v]) => [k, [...v]])
+    );
+
+    console.log("Check adjList: ", JSON.stringify(adjList, null, 2));
+
+    let start = startNodeRef.current?.data("label");
+    if (!start) {
+      for (const node of Object.keys(adjList)) {
+        if (adjList[node].length > 0) {
+          start = node;
+          break;
+        }
+      }
+    }
+    if (!start) return [];
+
+    console.log("Check start: ", start);
+
+    const eulerCircle: string[] = [];
+    const visited = new Map<string, Set<string>>();
+    for (const [key] of Object.entries(adjList)) {
+      visited.set(key, new Set());
+    }
+    console.log("Check visited: ", visited);
+    const stack: string[] = [start];
+
+    while (stack.length > 0) {
+      const u = stack[stack.length - 1];
+      let has_unvisited = false;
+      for (const node of [...adjList[u]].reverse()) {
+        console.log("Check if: ", visited.get(u)?.has(node), ' - ', node);
+        if (!visited.get(u)?.has(node)) {
+          visited.get(u)?.add(node);
+          if (!isDirectedGraph) {
+            visited.get(node)?.add(u);
+          }
+          stack.push(node);
+          has_unvisited = true;
+          break;
+        }
+      }
+      console.log("Check after: ", has_unvisited);
+      if (!has_unvisited) {
+        eulerCircle.push(stack.pop()!)
+      }
+    }
+
+    // return eulerCircle.reverse();
+
+    console.log("Check Euler Path with DFS_Base: ", eulerCircle.reverse());
+  }
 
 
 
@@ -162,7 +314,8 @@ const MainLayout = () => {
         </div>
         <div className="w-96 border-blue-600 border-2 flex flex-col gap-2">
           <Button onClick={findEulerPath}>Euler with Hierholzer</Button>
-          <Button onClick={findEulerPath}>Euler with Fleury</Button>
+          <Button onClick={eulerWithFleury}>Euler with Fleury</Button>
+          <Button onClick={aulerWothDFS_Base}>Euler with DFS_Base</Button>
         </div>
       </div>
     </>

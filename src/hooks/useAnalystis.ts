@@ -49,8 +49,12 @@ export const useAnalystis = (
       const targetLabel = edge.target().data("label") || targetId;
 
       adjacencyList[sourceLabel].push(targetLabel);
-      if (!isDirectedGraph)
+      if (!isDirectedGraph) {
+        if (!adjacencyList[targetLabel]) {
+          adjacencyList[targetLabel] = [];
+        }
         adjacencyList[targetLabel].push(sourceLabel);
+      }
     })
 
     // Sắp xếp các mảng trong danh sách kề
