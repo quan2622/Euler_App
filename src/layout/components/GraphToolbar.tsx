@@ -78,7 +78,7 @@ const GraphToolbar = ({
 
 
       GraphService.addEdge(cy, sourceNode.id(), targetNode.id());
-      updateNodeDegree(sourceNode.id(), targetNode.id(), isDirectedGraph);
+      updateNodeDegree(sourceNode.data("label"), targetNode.data("label"), isDirectedGraph);
       cy.nodes().removeClass("hasSelected");
       handleResetSelectedElement();
     } else {
@@ -100,10 +100,10 @@ const GraphToolbar = ({
         Object.entries(nodeDegrees).map(([k, v]) => [k, { ...v }])
       );
 
-      const selectedNodeIds = new Set(selectedNodes.map(item => item.id()));
+      const selectedNodeLabel = new Set(selectedNodes.map(item => item.data("label")));
 
       cloneNodeDegree = Object.fromEntries(
-        Object.entries(cloneNodeDegree).filter(([key]) => !selectedNodeIds.has(key))
+        Object.entries(cloneNodeDegree).filter(([key]) => !selectedNodeLabel.has(key))
       )
       useGraphStatusStore.setState({ nodeDegrees: cloneNodeDegree });
       // End - Update List Degrees
@@ -113,12 +113,12 @@ const GraphToolbar = ({
 
         if (connectedEdges.length > 0) {
           connectedEdges.forEach(edge => {
-            const sourceId = edge.source().id();
-            const targetId = edge.target().id();
+            const source = edge.source();
+            const target = edge.target();
 
-            if (!(elementIds.has(sourceId) && elementIds.has(targetId))) {
+            if (!(elementIds.has(source.id()) && elementIds.has(target.id()))) {
               edge.remove();
-              updateNodeDegree(sourceId, targetId, isDirectedGraph, false);
+              updateNodeDegree(source.data("label"), target.data("label"), isDirectedGraph, false);
             }
           });
         }
@@ -128,9 +128,9 @@ const GraphToolbar = ({
     }
     if (selectedEdges && selectedEdges.length > 0) {
       selectedEdges.forEach((edge: EdgeSingular) => {
-        const sourceId = edge.source().id();
-        const targetId = edge.target().id();
-        updateNodeDegree(sourceId, targetId, isDirectedGraph, false);
+        const source = edge.source().data("label");
+        const target = edge.target().data("label");
+        updateNodeDegree(source, target, isDirectedGraph, false);
 
       });
       selectedEdges.remove();

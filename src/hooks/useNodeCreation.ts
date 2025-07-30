@@ -40,7 +40,7 @@ export const useNodeCreation = (
     if (cyInstanceRef.current && nodePositionRef.current) {
       const id = `node-${Date.now()}`;
       GraphService.addNode(cyInstanceRef.current, labelNode.trim(), nodePositionRef.current, id);
-      initDegreeForNode(id);
+      initDegreeForNode(labelNode.trim());
 
       setLabelNode("");
       nodePositionRef.current = null;

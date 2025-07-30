@@ -101,6 +101,20 @@ export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
     },
   },
 
+  // Style cho edge tạm thời khi đang kéo
+  {
+    selector: ".temp-edge-target",
+    css: {
+      "line-color": "#2ECC40",
+      "target-arrow-color": "#2ECC40",
+      "target-arrow-shape": isDirected ? "triangle" : "none",
+      "line-style": "solid",
+      width: 3,
+      opacity: 0.7,
+      events: "no",
+    },
+  },
+
   // Style cho Euler path
   {
     selector: ".euler-path",

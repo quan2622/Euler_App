@@ -60,15 +60,7 @@ export const useGraphEvents = (
         source: sourceId,
         target: targetId,
       },
-      classes: "temp-edge",
-      style: isValid ?
-        {
-          "line-color": "#2ECC40",
-          "target-arrow-color": "#2ECC40",
-          "target-arrow-shape": isDirectedGraph ? "triangle" : "solid",
-          "line-style": "solid",
-        }
-        : {},
+      classes: isValid ? "temp-edge-target" : "temp-edge",
     })
   }, [isDirectedGraph]);
 
@@ -84,6 +76,7 @@ export const useGraphEvents = (
     addTempEdge(cy, sourceId, tempTargetNodeIdRef.current, false);
   }, [addTempEdge]);
 
+  // HANDLE PROCESS EVENT MOUSE MOVE
   const handleMouseMove = useCallback((cy: Core, evt: MouseEventObject) => {
     const tempIds = [tempEdgeIdRef.current, tempTargetNodeIdRef.current].filter((id) => id !== null);
     GraphService.clearTempElements(cy, tempIds);
@@ -154,7 +147,12 @@ export const useGraphEvents = (
           const targetElement = evt.target;
           if (targetElement.isNode() && dragSourceNodeIdRef.current && targetElement.id()) {
             GraphService.addEdge(cy, dragSourceNodeIdRef.current, targetElement.id());
-            updateNodeDegree(dragSourceNodeIdRef.current, targetElement.id(), isDirectedGraph);
+            // handle update node degree
+            const dragSourceNodeLabel = cy.$id(dragSourceNodeIdRef.current).data("label");
+
+            updateNodeDegree(dragSourceNodeLabel, targetElement.data("label"), isDirectedGraph);
+            // handle update node degree
+
             handleResetCache(cy);
 
             dragSourceNodeIdRef.current = null;

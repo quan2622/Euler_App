@@ -61,37 +61,37 @@ export const useGraphStatusStore = create<State & Action>((set) => ({
       return { nodeDegrees: nodeDegrees, nodeCounter: state.nodeCounter += 1 };
     });
   },
-  updateNodeDegree: (sourceId, targetId, isDerectedGraph, isAdd = true) => {
+  updateNodeDegree: (source, target, isDerectedGraph, isAdd = true) => {
     set(state => {
       const nodeDegrees = { ...state.nodeDegrees };
       let edgeCounter = state.edgeCounter;
 
 
       if (isAdd) {
-        nodeDegrees[sourceId] = { ...(nodeDegrees[sourceId] || { in: 0, out: 0, total: 0 }) };
+        nodeDegrees[source] = { ...(nodeDegrees[source] || { in: 0, out: 0, total: 0 }) };
 
-        nodeDegrees[targetId] = { ...(nodeDegrees[targetId] || { in: 0, out: 0, total: 0 }) };
+        nodeDegrees[target] = { ...(nodeDegrees[target] || { in: 0, out: 0, total: 0 }) };
 
         edgeCounter += 1;
         if (isDerectedGraph) {
-          nodeDegrees[sourceId].out += 1;
-          nodeDegrees[targetId].in += 1;
+          nodeDegrees[source].out += 1;
+          nodeDegrees[target].in += 1;
         }
 
-        nodeDegrees[sourceId].total += 1;
-        nodeDegrees[targetId].total += 1;
+        nodeDegrees[source].total += 1;
+        nodeDegrees[target].total += 1;
       } else {
         edgeCounter -= 1;
         if (isDerectedGraph) {
-          if (Object.prototype.hasOwnProperty.call(nodeDegrees, sourceId))
-            nodeDegrees[sourceId].out -= 1;
-          if (Object.prototype.hasOwnProperty.call(nodeDegrees, targetId))
-            nodeDegrees[targetId].in -= 1;
+          if (Object.prototype.hasOwnProperty.call(nodeDegrees, source))
+            nodeDegrees[source].out -= 1;
+          if (Object.prototype.hasOwnProperty.call(nodeDegrees, target))
+            nodeDegrees[target].in -= 1;
         }
-        if (Object.prototype.hasOwnProperty.call(nodeDegrees, sourceId))
-          nodeDegrees[sourceId].total -= 1;
-        if (Object.prototype.hasOwnProperty.call(nodeDegrees, targetId))
-          nodeDegrees[targetId].total -= 1;
+        if (Object.prototype.hasOwnProperty.call(nodeDegrees, source))
+          nodeDegrees[source].total -= 1;
+        if (Object.prototype.hasOwnProperty.call(nodeDegrees, target))
+          nodeDegrees[target].total -= 1;
       }
 
       return { nodeDegrees: nodeDegrees, edgeCounter: edgeCounter };
