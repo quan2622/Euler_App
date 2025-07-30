@@ -25,7 +25,7 @@ const GraphToolbar = ({
 }: GraphToolbarProps) => {
 
   const { selectedElements, handleResetSelectedElement, startNode, handleSetStartNode } = useGraphStore();
-  const { updateNodeDegree, handleResetStatus, handleLoadStatusFormFile, nodeLabels } = useGraphStatusStore();
+  const { updateNodeDegree, handleResetStatus, handleLoadStatusFormFile, nodeLabels, nodeDegrees } = useGraphStatusStore();
   const [currentLayout, setCurrentLayout] = useState("grid");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -95,18 +95,33 @@ const GraphToolbar = ({
     const selectedEdges = cy.edges().filter(edge => elementIds.has(edge.id()));
 
     if (selectedNodes && selectedNodes.length > 0) {
+      // Start - Update List Degrees
+      let cloneNodeDegree = Object.fromEntries(
+        Object.entries(nodeDegrees).map(([k, v]) => [k, { ...v }])
+      );
+
+      const selectedNodeIds = new Set(selectedNodes.map(item => item.id()));
+
+      cloneNodeDegree = Object.fromEntries(
+        Object.entries(cloneNodeDegree).filter(([key]) => !selectedNodeIds.has(key))
+      )
+      useGraphStatusStore.setState({ nodeDegrees: cloneNodeDegree });
+      // End - Update List Degrees
+
       selectedNodes.forEach(node => {
         const connectedEdges = node.connectedEdges();
-        connectedEdges.forEach(edge => {
-          const sourceId = edge.source().id();
-          const targetId = edge.target().id();
 
-          if (!(elementIds.has(sourceId) && elementIds.has(targetId))) {
-            edge.remove();
-            updateNodeDegree(sourceId, targetId, isDirectedGraph, false);
-          }
+        if (connectedEdges.length > 0) {
+          connectedEdges.forEach(edge => {
+            const sourceId = edge.source().id();
+            const targetId = edge.target().id();
 
-        });
+            if (!(elementIds.has(sourceId) && elementIds.has(targetId))) {
+              edge.remove();
+              updateNodeDegree(sourceId, targetId, isDirectedGraph, false);
+            }
+          });
+        }
       });
 
       selectedNodes.remove();
@@ -121,7 +136,8 @@ const GraphToolbar = ({
       selectedEdges.remove();
     }
     handleResetSelectedElement();
-  }, [isDirectedGraph, selectedElements]);
+  }, [isDirectedGraph, selectedElements, nodeDegrees, updateNodeDegree, handleResetSelectedElement]);
+
 
   const clearGraph = useCallback(() => {
     const cy = cyInstance.current;
@@ -159,13 +175,16 @@ const GraphToolbar = ({
     const jsonString = JSON.stringify(graphData, null, 2);
 
     const blob = new Blob([jsonString], { type: "application/json" });
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `graph-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
+
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+
     URL.revokeObjectURL(url);
   }, [isDirectedGraph, currentLayout]);
 
@@ -178,10 +197,9 @@ const GraphToolbar = ({
 
       reader.onload = (e) => {
         try {
-          const graphData = JSON.parse(e.target?.result as string);
-
           cy.elements().remove();
 
+          const graphData = JSON.parse(e.target?.result as string);
           if (graphData.nodes) {
             graphData.nodes.forEach((node: any) => {
               cy.add({
@@ -245,7 +263,7 @@ const GraphToolbar = ({
     fileInputRef.current?.click();
   }
 
-  const handleChangStart = (value: string) => {
+  const handleChangeStart = (value: string) => {
     if (!cyInstance.current) return;
     handleSetStartNode(value);
 
@@ -294,7 +312,7 @@ const GraphToolbar = ({
         <Input className="hidden" type="file" accept=".json" ref={fileInputRef} onChange={importGraph} />
       </div>
 
-      <Select value={startNode} onValueChange={handleChangStart}>
+      <Select value={startNode} onValueChange={handleChangeStart}>
         <SelectTrigger className="w-[180px] bg-pink-200">
           <SelectValue placeholder="Chọn đỉnh bắt đầu" />
         </SelectTrigger>

@@ -41,7 +41,7 @@ export const useGraphStatusStore = create<State & Action>((set) => ({
     set({ isReady: true });
   },
   handleResetStatus: () => {
-    set({ nodeCounter: 1, edgeCounter: 1 });
+    set({ nodeCounter: 1, edgeCounter: 1, nodeDegrees: {} });
   },
   handleLoadStatusFormFile: (nodeCounter, edgeCounter) => {
     set({ nodeCounter: nodeCounter, edgeCounter: edgeCounter });
@@ -66,14 +66,12 @@ export const useGraphStatusStore = create<State & Action>((set) => ({
       const nodeDegrees = { ...state.nodeDegrees };
       let edgeCounter = state.edgeCounter;
 
-      nodeDegrees[sourceId] = {
-        ...(nodeDegrees[sourceId] || { in: 0, out: 0, total: 0 }),
-      };
 
-      nodeDegrees[targetId] = {
-        ...(nodeDegrees[targetId] || { in: 0, out: 0, total: 0 }),
-      };
       if (isAdd) {
+        nodeDegrees[sourceId] = { ...(nodeDegrees[sourceId] || { in: 0, out: 0, total: 0 }) };
+
+        nodeDegrees[targetId] = { ...(nodeDegrees[targetId] || { in: 0, out: 0, total: 0 }) };
+
         edgeCounter += 1;
         if (isDerectedGraph) {
           nodeDegrees[sourceId].out += 1;
@@ -85,13 +83,17 @@ export const useGraphStatusStore = create<State & Action>((set) => ({
       } else {
         edgeCounter -= 1;
         if (isDerectedGraph) {
-          nodeDegrees[sourceId].out -= 1;
-          nodeDegrees[targetId].in -= 1;
+          if (Object.prototype.hasOwnProperty.call(nodeDegrees, sourceId))
+            nodeDegrees[sourceId].out -= 1;
+          if (Object.prototype.hasOwnProperty.call(nodeDegrees, targetId))
+            nodeDegrees[targetId].in -= 1;
         }
-
-        nodeDegrees[sourceId].total -= 1;
-        nodeDegrees[targetId].total -= 1;
+        if (Object.prototype.hasOwnProperty.call(nodeDegrees, sourceId))
+          nodeDegrees[sourceId].total -= 1;
+        if (Object.prototype.hasOwnProperty.call(nodeDegrees, targetId))
+          nodeDegrees[targetId].total -= 1;
       }
+
       return { nodeDegrees: nodeDegrees, edgeCounter: edgeCounter };
     });
   },
