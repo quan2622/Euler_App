@@ -50,7 +50,8 @@ export const useGraphStatusStore = create<State & Action>((set) => ({
     set({
       adjacencyMatrix: adjacencyMatix,
       adjacencyList: adjacencyList,
-      nodeLabels: nodeLabels.sort()
+      // nodeLabels: nodeLabels.sort()
+      nodeLabels: nodeLabels
     })
   },
   initDegreeForNode: (nodeId) => {
