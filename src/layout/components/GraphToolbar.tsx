@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Core, EdgeSingular, NodeSingular } from "cytoscape"
 import { Button } from "../../components/ui/button"
@@ -9,6 +10,9 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Eraser, FileDown, FileUp, Fullscreen, Shrink, Trash2, ZoomIn, ZoomOut } from "lucide-react";
 import { useGraphStatusStore } from "../../store/useGraphStatusStore";
 import { Input } from "../../components/ui/input";
+import { Switch } from "../../components/ui/switch";
+import { ScrollArea } from "../../components/ui/scroll-area";
+import { Textarea } from "../../components/ui/textarea";
 
 interface GraphToolbarProps {
   cyInstance: React.RefObject<Core | null>,
@@ -24,8 +28,8 @@ const GraphToolbar = ({
   onToggleDirected
 }: GraphToolbarProps) => {
 
-  const { selectedElements, handleResetSelectedElement, startNode, handleSetStartNode } = useGraphStore();
-  const { updateNodeDegree, handleResetStatus, handleLoadStatusFormFile, nodeLabels, nodeDegrees } = useGraphStatusStore();
+  const { selectedElements, handleResetSelectedElement } = useGraphStore();
+  const { updateNodeDegree, handleResetStatus, handleLoadStatusFormFile, nodeDegrees } = useGraphStatusStore();
   const [currentLayout, setCurrentLayout] = useState("grid");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -263,66 +267,108 @@ const GraphToolbar = ({
     fileInputRef.current?.click();
   }
 
-  const handleChangeStart = (value: string) => {
-    if (!cyInstance.current) return;
-    handleSetStartNode(value);
-
-    const nodes = cyInstance.current?.nodes();
-    nodes.removeClass("start");
-    const startNode = nodes?.filter((node) => node.data("label") === value).first();
-    startNode.addClass("start");
-    if (startNode.nonempty() && startNode.isNode()) {
-      startNodeRef.current = startNode;
-    }
-  }
-
   return (
-    <div className="h-60 w-full border-red-600 border-2">
-      toolbars
-      <Button variant={'outline'} onClick={() => onToggleDirected()}>{isDirectedGraph ? "Có hướng" : "Vô hướng"}</Button>
-      <Button variant={"destructive"} onClick={connectSelection}>Tạo liên kết</Button>
-      <Select value={currentLayout} onValueChange={handleChangeLayout}>
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Chọn Layout" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectLabel>Chọn layout</SelectLabel>
-            <SelectItem value="grid">Grid</SelectItem>
-            <SelectItem value="circle">Circle</SelectItem>
-            <SelectItem value="cose">Force</SelectItem>
-            <SelectItem value="breadthfirst">Hierarchy</SelectItem>
-            <SelectItem value="concentric">Concentric</SelectItem>
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-      <div className="flex gap-2 my-2">
-        <Button variant={"outline"} size={"icon"} onClick={zoomIn}><ZoomIn /></Button>
-        <Button variant={"outline"} size={"icon"} onClick={zoomOut}><ZoomOut /> </Button>
-        <Button variant={"outline"} size={"icon"} onClick={fitToScreen}><Fullscreen /> </Button>
-        <Button variant={"outline"} size={"icon"} onClick={center}><Shrink /> </Button>
-      </div>
-      <div className="flex gap-2">
-        <Button variant={"outline"} onClick={handleDeleteElement}><Eraser /> Xóa phần tử </Button>
-        <Button variant={"outline"} onClick={clearGraph}><Trash2 /> Xóa đồ thị </Button>
-      </div>
-      <div className="flex gap-2">
-        <Button variant={"outline"} onClick={exportGraph}><FileDown />Xuất đồ thị</Button>
-        <Button variant={"outline"} onClick={handleUploadClick}><FileUp /> Tải lên đồ thị </Button>
-        <Input className="hidden" type="file" accept=".json" ref={fileInputRef} onChange={importGraph} />
-      </div>
+    <div className="w-full p-4">
+      <div className="">
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <div className="font-bold text-2xl border-b-2 border-red-600">
+              Find Euler Cycle
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">Đồ thị có hướng: </span>
+              <Switch
+                checked={isDirectedGraph}
+                onCheckedChange={onToggleDirected}
+              />
+            </div>
 
-      <Select value={startNode} onValueChange={handleChangeStart}>
-        <SelectTrigger className="w-[180px] bg-pink-200">
-          <SelectValue placeholder="Chọn đỉnh bắt đầu" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="none" disabled>-- Chọn đỉnh bắt đầu --</SelectItem>
-          {nodeLabels && nodeLabels.length > 0 && nodeLabels.map((label, index) => (
-            <SelectItem value={label} key={index}>{label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+            <div className="border-l-2 border-zinc-800/30 my-1" />
+
+            <Select value={currentLayout} onValueChange={handleChangeLayout}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Chọn Layout" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Chọn layout</SelectLabel>
+                  <SelectItem value="grid">Grid</SelectItem>
+                  <SelectItem value="circle">Circle</SelectItem>
+                  <SelectItem value="cose">Force</SelectItem>
+                  <SelectItem value="breadthfirst">Hierarchy</SelectItem>
+                  <SelectItem value="concentric">Concentric</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
+            <div className="border-l-2 border-zinc-800/30 my-1" />
+
+            <div className="flex gap-2">
+              <Button variant={"outline"} size={"icon"} onClick={zoomIn}><ZoomIn /></Button>
+              <Button variant={"outline"} size={"icon"} onClick={zoomOut}><ZoomOut /> </Button>
+              <Button variant={"outline"} size={"icon"} onClick={fitToScreen}><Fullscreen /> </Button>
+              <Button variant={"outline"} size={"icon"} onClick={center}><Shrink /> </Button>
+            </div>
+
+            <div className="border-l-2 border-zinc-800/30 my-1" />
+
+            <div className="flex gap-2">
+              <Button variant={"outline"} onClick={exportGraph}><FileDown />Xuất đồ thị</Button>
+              <Button variant={"outline"} onClick={handleUploadClick}><FileUp /> Tải lên đồ thị </Button>
+              <Input className="hidden" type="file" accept=".json" ref={fileInputRef} onChange={importGraph} />
+            </div>
+
+          </div>
+          <div className="flex gap-4">
+            <div className="flex gap-2">
+              <Button variant={"default"} onClick={connectSelection}>Tạo liên kết</Button>
+              <Button variant={"outline"} onClick={handleDeleteElement}><Eraser /> Xóa phần tử </Button>
+              <Button variant={"outline"} onClick={clearGraph}><Trash2 /> Xóa đồ thị </Button>
+            </div>
+
+            <div className="border-l-2 border-zinc-800/30 my-1" />
+
+            <div className="flex items-center space-x-2">
+              <div className="font-semibold">Sinh đồ thị ngẫu nhiên:</div>
+              <Select>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Chọn số đỉnh" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="none" disabled>-- Chọn số đỉnh --</SelectItem>
+                    <SelectItem value="4">4</SelectItem>
+                    <SelectItem value="8">8</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="14">14</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Button variant={"default"} disabled>Tạo đồ thị</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 w-full">
+        <div className="flex gap-4">
+          <div className="w-1/2 space-y-1">
+            <div className="whitespace-nowrap font-semibold italic">Input:</div>
+            <Textarea
+              placeholder="Nhập thông tin đồ thị khi import"
+              className="bg-white h-[100px] resize-none"
+            />
+          </div>
+          <div className="w-1/2 space-y-1">
+            <div className="whitespace-nowrap font-semibold italic">Output:</div>
+            <Textarea
+              readOnly
+              className="h-[100px] bg-white resize-none"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

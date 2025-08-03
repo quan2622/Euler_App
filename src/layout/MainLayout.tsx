@@ -240,14 +240,13 @@ const MainLayout = () => {
     <>
       <div className="flex h-screen flex-1 bg-zinc-500 w-full">
         <div className="flex-1 flex flex-col">
-          <GraphToolbar
-            cyInstance={cyInstance}
-            isDirectedGraph={isDirectedGraph}
-            onToggleDirected={onToggleDirected}
-            startNodeRef={startNodeRef}
-          />
-          <div className="h-20 w-full bg-white border-orange-600   border-2">
-            aaaaa
+          <div className="border-zinc-200 border-b-2 bg-slate-100">
+            <GraphToolbar
+              cyInstance={cyInstance}
+              isDirectedGraph={isDirectedGraph}
+              onToggleDirected={onToggleDirected}
+              startNodeRef={startNodeRef}
+            />
           </div>
           {/* Graph Container */}
           <GraphCanvas

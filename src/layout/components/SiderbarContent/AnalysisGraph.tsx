@@ -4,10 +4,12 @@ import { ScrollArea } from "../../../components/ui/scroll-area"
 import { useGraphStatusStore } from "../../../store/useGraphStatusStore"
 import clsx from "clsx"
 
+interface AnalysisGraphType {
+  isDirectedGraph: boolean,
+}
 
 
-
-const AnalysisGraph = () => {
+const AnalysisGraph = ({ isDirectedGraph }: AnalysisGraphType) => {
   const { adjacencyMatrix, nodeLabels, interconnects } = useGraphStatusStore();
 
   return (
@@ -55,6 +57,10 @@ const AnalysisGraph = () => {
               }
             </CardContent>
           </Card>
+
+          {isDirectedGraph &&
+            <div>có hướng</div>
+          }
 
           <Card>
             <CardHeader className="pb-2">

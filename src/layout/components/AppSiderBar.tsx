@@ -32,7 +32,9 @@ const AppSiderbar = ({ cyInstance, startNodeRef, isDirectedGraph }: AppSiderbarP
             />
           </TabsContent>
           <TabsContent value="analysis">
-            <AnalysisGraph />
+            <AnalysisGraph
+              isDirectedGraph={isDirectedGraph}
+            />
           </TabsContent>
         </Tabs>
       </div>

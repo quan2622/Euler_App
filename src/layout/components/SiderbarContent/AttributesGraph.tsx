@@ -20,10 +20,8 @@ const AttributesGraph = ({ cyInstance, startNodeRef }: AttributesGraphType) => {
 
   const [selectAlgorithm, setSelectAlgorithm] = useState<string>(ALGORITHM_SELECT.HIERHOLZER);
   const [runMode, setRunMode] = useState<string>(RUN_MODE.AUTO);
+  const [EulerCycle, setEulerCycle] = useState("");
 
-  const handlePlayAlgorithm = () => {
-    alert("Click");
-  }
 
   const handleChangeStart = (value: string) => {
     if (!cyInstance.current) return;
@@ -37,6 +35,14 @@ const AttributesGraph = ({ cyInstance, startNodeRef }: AttributesGraphType) => {
       startNodeRef.current = startNode;
     }
   }
+
+  // HANLE FIND EULER
+  const handlePlayAlgorithm = () => {
+
+
+
+  }
+  // HANLE FIND EULER
 
   return (
     <>
@@ -123,6 +129,9 @@ const AttributesGraph = ({ cyInstance, startNodeRef }: AttributesGraphType) => {
             <Play />
             <span>Chạy thuật toán</span>
           </Button>
+        </div>
+        <div className="p4 border-2 border-pink-600">
+          {EulerCycle}
         </div>
       </div>
     </>
