@@ -40,20 +40,18 @@ export const useAnalystis = (
 
     // Danh sách kề
     const adjacencyList: { [key: string]: string[] } = {};
-    nodeLabels.map((label) => adjacencyList[label] = []);
+    nodeIds.map((nodeId) => adjacencyList[nodeId] = []);
 
     edges.forEach((edge: EdgeSingular) => {
       const sourceId = edge.source().id();
       const targetId = edge.target().id();
-      const sourceLabel = edge.source().data("label") || sourceId;
-      const targetLabel = edge.target().data("label") || targetId;
 
-      adjacencyList[sourceLabel].push(targetLabel);
+      adjacencyList[sourceId].push(targetId);
       if (!isDirectedGraph) {
-        if (!adjacencyList[targetLabel]) {
-          adjacencyList[targetLabel] = [];
+        if (!adjacencyList[targetId]) {
+          adjacencyList[targetId] = [];
         }
-        adjacencyList[targetLabel].push(sourceLabel);
+        adjacencyList[targetId].push(sourceId);
       }
     })
 
@@ -62,7 +60,9 @@ export const useAnalystis = (
       adjacencyList[key] = value.sort((a, b) => a.localeCompare(b));
     }
 
-    updateAnalysis(adjacencyMatix, adjacencyList, nodeLabels);
+    const nodeCounter = nodeLabels.length + 1;
+
+    updateAnalysis(adjacencyMatix, adjacencyList, nodeLabels, nodeCounter);
   }, [isDirectedGraph, updateAnalysis]);
 
   const findInterConnection = useCallback(() => {
