@@ -48,6 +48,14 @@ export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
       width: 3,
     },
   },
+  {
+    selector: "edge.euler-path",
+    css: {
+      "line-color": "#FF6B9D",
+      "target-arrow-color": "#FF6B9D",
+      width: 3,
+    },
+  },
 
   // Style cho elements được chọn
   {
@@ -60,6 +68,13 @@ export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
       "border-width": 3,
       "background-color": "#FFDC00",
       "border-color": "#FF851B",
+    },
+  },
+  {
+    selector: "node.end",
+    css: {
+      "border-width": 3,
+      "border-color": "#e7000b",
     },
   },
 

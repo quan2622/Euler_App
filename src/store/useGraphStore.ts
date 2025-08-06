@@ -1,8 +1,13 @@
 import { create } from "zustand"
+import { ALGORITHM_SELECT, RUN_MODE } from "../utils/constant"
 
 type State = {
   selectedElements: string[],
   startNode: string,
+  oddNodes: string[],
+  suggestMess: string,
+  runMode: string,
+  selectAlgorithm: string,
 }
 
 type Action = {
@@ -10,13 +15,33 @@ type Action = {
   handleAddSelectedElements: (elementId: string) => void
   handleRemoveSelectedElements: (elementId: string) => void
   handleSetStartNode: (newStartNode: string) => void
+  updateOddNode: (newOddNodes: string[]) => void
+  updateSuggestMess: (newMess: string) => void,
+  updateRunMode: (newRunMode: string) => void,
+  updateSelectedAlgorithm: (newAlgorithm: string) => void,
 }
 
 export const useGraphStore = create<State & Action>((set) => ({
   selectedElements: [],
   startNode: "",
+  oddNodes: [],
+  suggestMess: "",
+  runMode: RUN_MODE.AUTO,
+  selectAlgorithm: ALGORITHM_SELECT.HIERHOLZER,
 
-  handleSetStartNode: (newStartNode: string) => {
+  updateSelectedAlgorithm: (newAlgorithm) => {
+    set({ selectAlgorithm: newAlgorithm });
+  },
+  updateRunMode: (newRunMode) => {
+    set({ runMode: newRunMode })
+  },
+  updateSuggestMess: (newMess) => {
+    set({ suggestMess: newMess });
+  },
+  updateOddNode: (newOddNodes) => {
+    set({ oddNodes: newOddNodes })
+  },
+  handleSetStartNode: (newStartNode) => {
     set({ startNode: newStartNode }) //node label
   },
   handleResetSelectedElement: () => {

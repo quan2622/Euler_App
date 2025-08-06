@@ -20,11 +20,12 @@ type Action = {
   updateAnalysis: (
     adjacencyMatrix: number[][],
     adjacencyList: { [key: string]: string[] },
-    nodeLabels: string[]
+    nodeLabels: string[],
+    nodeCounter: number
   ) => void,
   handleResetStatus: () => void,
   handleLoadStatusFormFile: (nodeCounter: number, edgeCounter: number) => void,
-  handleInit: () => void
+  handleInit: () => void,
 }
 
 export const useGraphStatusStore = create<State & Action>((set) => ({
@@ -46,12 +47,13 @@ export const useGraphStatusStore = create<State & Action>((set) => ({
   handleLoadStatusFormFile: (nodeCounter, edgeCounter) => {
     set({ nodeCounter: nodeCounter, edgeCounter: edgeCounter });
   },
-  updateAnalysis: (adjacencyMatix, adjacencyList, nodeLabels) => {
+  updateAnalysis: (adjacencyMatix, adjacencyList, nodeLabels, nodeCounter) => {
     set({
       adjacencyMatrix: adjacencyMatix,
       adjacencyList: adjacencyList,
       // nodeLabels: nodeLabels.sort()
-      nodeLabels: nodeLabels
+      nodeLabels: nodeLabels,
+      nodeCounter: nodeCounter
     })
   },
   initDegreeForNode: (nodeId) => {
@@ -59,7 +61,7 @@ export const useGraphStatusStore = create<State & Action>((set) => ({
       const nodeDegrees = { ...state.nodeDegrees };
       nodeDegrees[nodeId] = { in: 0, out: 0, total: 0 };
 
-      return { nodeDegrees: nodeDegrees, nodeCounter: state.nodeCounter += 1 };
+      return { nodeDegrees: nodeDegrees };
     });
   },
   updateNodeDegree: (source, target, isDerectedGraph, isAdd = true) => {

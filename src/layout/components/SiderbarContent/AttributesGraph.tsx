@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { List, Play } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
 import { useGraphStatusStore } from "../../../store/useGraphStatusStore"
@@ -6,43 +7,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { ALGORITHM_SELECT, RUN_MODE } from "../../../utils/constant";
 import { Button } from "../../../components/ui/button";
 import { useGraphStore } from "../../../store/useGraphStore";
-import { useState } from "react";
-import type { Core, NodeSingular } from "cytoscape";
+import { useEffect } from "react";
 
 interface AttributesGraphType {
-  cyInstance: React.RefObject<Core | null>,
-  startNodeRef: React.RefObject<NodeSingular | null>
+  handleChangeStart: (value: string) => void,
+  handlePlayAlgorithm: () => void,
 }
 
-const AttributesGraph = ({ cyInstance, startNodeRef }: AttributesGraphType) => {
+const AttributesGraph = ({ handleChangeStart, handlePlayAlgorithm }: AttributesGraphType) => {
   const { nodeCounter, edgeCounter, nodeLabels, interconnects } = useGraphStatusStore();
-  const { startNode, handleSetStartNode } = useGraphStore();
-
-  const [selectAlgorithm, setSelectAlgorithm] = useState<string>(ALGORITHM_SELECT.HIERHOLZER);
-  const [runMode, setRunMode] = useState<string>(RUN_MODE.AUTO);
-  const [EulerCycle, setEulerCycle] = useState("");
+  const { selectAlgorithm, runMode, startNode, suggestMess, updateOddNode, updateSuggestMess, updateRunMode, updateSelectedAlgorithm } = useGraphStore();
 
 
-  const handleChangeStart = (value: string) => {
-    if (!cyInstance.current) return;
-    handleSetStartNode(value);
-
-    const nodes = cyInstance.current?.nodes();
-    nodes.removeClass("start");
-    const startNode = nodes?.filter((node) => node.data("label") === value).first();
-    startNode.addClass("start");
-    if (startNode.nonempty() && startNode.isNode()) {
-      startNodeRef.current = startNode;
-    }
-  }
-
-  // HANLE FIND EULER
-  const handlePlayAlgorithm = () => {
-
-
-
-  }
-  // HANLE FIND EULER
+  useEffect(() => {
+    // Reset status find Euler
+    updateOddNode([]);
+    updateSuggestMess("");
+    // Check even node degree
+  }, [nodeLabels]);
 
   return (
     <>
@@ -65,7 +47,6 @@ const AttributesGraph = ({ cyInstance, startNodeRef }: AttributesGraphType) => {
             </div>
             <div className="flex justify-between">
               <span>Bố cục:</span>
-              {/* <span className="capitalize">{currentLayout}</span> */}
               <span className="capitalize">?currentLayout</span>
             </div>
             <div className="flex justify-between">
@@ -87,20 +68,19 @@ const AttributesGraph = ({ cyInstance, startNodeRef }: AttributesGraphType) => {
       <div className="p-4 pt-0 flex flex-col space-y-2">
         <div className="space-y-1">
           <Label htmlFor="select-algorithm">Thuật toán</Label>
-          <Select value={selectAlgorithm} onValueChange={(value) => { setSelectAlgorithm(value) }}>
+          <Select value={selectAlgorithm} onValueChange={(value) => { updateSelectedAlgorithm(value) }}>
             <SelectTrigger className="w-full" id="select-algorithm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent defaultValue={ALGORITHM_SELECT.HIERHOLZER}>
               <SelectItem value={ALGORITHM_SELECT.HIERHOLZER}>Hierholzer</SelectItem>
               <SelectItem value={ALGORITHM_SELECT.FLEURY}>Fleury</SelectItem>
-              <SelectItem value={ALGORITHM_SELECT.DFS_BASE}>DFS_Base</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1">
           <Label htmlFor="select-runMode">Chế độ chạy</Label>
-          <Select value={runMode} onValueChange={(value) => { setRunMode(value) }}>
+          <Select value={runMode} onValueChange={(value) => { updateRunMode(value) }}>
             <SelectTrigger className="w-full" id="select-runMode">
               <SelectValue />
             </SelectTrigger>
@@ -123,15 +103,13 @@ const AttributesGraph = ({ cyInstance, startNodeRef }: AttributesGraphType) => {
               ))}
             </SelectContent>
           </Select>
+          <span className="text-xs text-red-600/80">{suggestMess}</span>
         </div>
         <div className="pt-2">
           <Button variant="destructive" className="w-full" onClick={handlePlayAlgorithm}>
             <Play />
             <span>Chạy thuật toán</span>
           </Button>
-        </div>
-        <div className="p4 border-2 border-pink-600">
-          {EulerCycle}
         </div>
       </div>
     </>

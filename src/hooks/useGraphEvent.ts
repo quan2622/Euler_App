@@ -4,6 +4,7 @@ import { GraphService } from "../services/graphService";
 import type { MouseEventObject, NodePosition } from "../types/graph.type";
 import { useGraphStore } from "../store/useGraphStore";
 import { useGraphStatusStore } from "../store/useGraphStatusStore";
+import { toast } from "sonner";
 
 interface useGraphEventsProps {
   isDirectedGraph: boolean,
@@ -103,6 +104,10 @@ export const useGraphEvents = (
 
       cy.on('dblclick', 'node', (evt) => {
         if (evt.target.isNode() && evt.originalEvent.altKey) {
+          if (cy.$id(evt.target.id()).hasClass('hasSelected')) {
+            toast.warning("Không thể chọn đỉnh bị đánh dấu!")
+            return;
+          }
           if (!startNodeRef.current) {
             startNodeRef.current = evt.target;
             cy.$id(evt.target.id()).addClass('start');
@@ -176,6 +181,11 @@ export const useGraphEvents = (
       cy.on("tap", (evt) => {
         const element = evt.target;
         if (element !== cy && evt.originalEvent.ctrlKey) {
+          if (element.isNode()) {
+            if (element.data('label') === startNodeRef.current?.data("label")) {
+              return;
+            }
+          }
           if (!selectedElementsRef.current.includes(element.id())) {
             element.addClass("hasSelected");
             handleAddSelectedElements(element.id());

@@ -11,7 +11,6 @@ interface AnalysisGraphType {
 
 const AnalysisGraph = ({ isDirectedGraph }: AnalysisGraphType) => {
   const { adjacencyMatrix, nodeLabels, interconnects } = useGraphStatusStore();
-
   return (
     <>
       <ScrollArea className="h-[82vh] p-4 pt-2 pb-2">
