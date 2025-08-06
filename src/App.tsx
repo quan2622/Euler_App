@@ -13,10 +13,10 @@ function App() {
         <Route path="/" element={<GraphPage />} />
       </Routes>
       <Toaster
-        position="top-center"
+        position="bottom-center"
         expand={false}
         richColors
-        duration={3000}
+        duration={2000}
         visibleToasts={5}
       />
     </>
