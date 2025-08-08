@@ -7,28 +7,40 @@ import { useGraphStore } from "../../store/useGraphStore";
 import { GraphService } from "../../services/graphService";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Eraser, FileDown, FileUp, Fullscreen, Shrink, Trash2, ZoomIn, ZoomOut } from "lucide-react";
+import { Eraser, FileDown, FileUp, Fullscreen, Pause, Play, RotateCcw, Shrink, SkipForward, Trash2, ZoomIn, ZoomOut } from "lucide-react";
 import { useGraphStatusStore } from "../../store/useGraphStatusStore";
 import { Input } from "../../components/ui/input";
 import { Switch } from "../../components/ui/switch";
-import { ScrollArea } from "../../components/ui/scroll-area";
 import { Textarea } from "../../components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../components/ui/tooltip";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Label } from "../../components/ui/label";
+import type { CheckedState } from "@radix-ui/react-checkbox";
+import { RUN_MODE } from "../../utils/constant";
 
 interface GraphToolbarProps {
   cyInstance: React.RefObject<Core | null>,
   isDirectedGraph: boolean,
-  startNodeRef: React.RefObject<NodeSingular | null>
+  animateIsPause: boolean,
+
   onToggleDirected: (type?: boolean) => void,
+  nextStep: () => void,
+  resetAnimation: () => void,
+  handlePlayAlgorithm: (stepByStep: boolean) => void,
 }
 
 const GraphToolbar = ({
   cyInstance,
   isDirectedGraph,
-  startNodeRef,
-  onToggleDirected
+  animateIsPause,
+  onToggleDirected,
+  nextStep,
+  resetAnimation,
+  handlePlayAlgorithm
+
 }: GraphToolbarProps) => {
 
-  const { selectedElements, handleResetSelectedElement } = useGraphStore();
+  const { runMode, selectedElements, handleResetSelectedElement, updateRunMode } = useGraphStore();
   const { updateNodeDegree, handleResetStatus, handleLoadStatusFormFile, nodeDegrees } = useGraphStatusStore();
   const [currentLayout, setCurrentLayout] = useState("grid");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -267,17 +279,27 @@ const GraphToolbar = ({
     fileInputRef.current?.click();
   }
 
+  const handleChangeRunMode = (value: CheckedState) => {
+    if (value === true) {
+      updateRunMode(RUN_MODE.STEP);
+    } else updateRunMode(RUN_MODE.AUTO);
+  }
+
+  console.log("Check animateIsPause: ", animateIsPause);
   return (
     <div className="w-full p-4">
       <div className="">
         <div className="space-y-4">
+          {/* <div className="flex gap-4">
+            <div className="font-bold text-2xl border-b-2 border-red-600">
+              Find Euler Cycle
+            </div>
+          </div> */}
           <div className="flex gap-4">
             <div className="font-bold text-2xl border-b-2 border-red-600">
               Find Euler Cycle
             </div>
-          </div>
-          <div className="flex gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pl-3">
               <span className="font-semibold">Đồ thị có hướng: </span>
               <Switch
                 checked={isDirectedGraph}
@@ -331,9 +353,8 @@ const GraphToolbar = ({
             <div className="border-l-2 border-zinc-800/30 my-1" />
 
             <div className="flex items-center space-x-2">
-              <div className="font-semibold">Sinh đồ thị ngẫu nhiên:</div>
               <Select>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[130px]">
                   <SelectValue placeholder="Chọn số đỉnh" />
                 </SelectTrigger>
                 <SelectContent>
@@ -348,6 +369,51 @@ const GraphToolbar = ({
               </Select>
               <Button variant={"default"} disabled>Tạo đồ thị</Button>
             </div>
+
+            <div className="border-l-2 border-zinc-800/30 my-1" />
+
+            <div className="flex gap-2">
+              <div className="flex items-center gap-2 pr-2">
+                <Checkbox id="check-step-by-step" checked={runMode === RUN_MODE.STEP} onCheckedChange={handleChangeRunMode} />
+                <Label htmlFor="check-step-by-step" className="text-sm">Step-by-step</Label>
+              </div>
+
+              <TooltipProvider delayDuration={50}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    {!animateIsPause ?
+                      <Button size={"icon"}
+                        onClick={() => handlePlayAlgorithm(runMode === RUN_MODE.STEP)}
+                        className="bg-sky-600 text-white hover:bg-red-500 transition-all ease-linear duration-150">
+                        <Pause />
+                      </Button>
+                      :
+                      <Button size={"icon"}
+                        onClick={() => handlePlayAlgorithm(runMode === RUN_MODE.STEP)}
+                        className="bg-red-600 text-white hover:bg-sky-500 transition-all ease-linear duration-150">
+                        <Play />
+                      </Button>
+                    }
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-zinc-100 text-zinc-800 shadow-sm shadow-gray-500">
+                    <p className="flex items-center font-semibold">Chạy thuât toán</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <Button variant={"outline"} size={"icon"} onClick={nextStep}><SkipForward /></Button>
+              <TooltipProvider delayDuration={50}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant={"outline"} size={"icon"} onClick={resetAnimation}><RotateCcw /></Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-zinc-100 text-zinc-800 shadow-sm shadow-gray-500">
+                    <p className="flex items-center font-semibold">Reset trạng thái</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+
           </div>
         </div>
       </div>
