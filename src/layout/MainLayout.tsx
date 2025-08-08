@@ -5,7 +5,6 @@ import GraphCanvas from "./components/GraphCanvas";
 import { useAlgorithm } from "../hooks/useAlgorithm";
 import AppSiderbar from "./components/AppSiderBar";
 import { useRunGraphAlgorithm } from "../hooks/useRunGraphAlgorithm";
-import { useGraphStore } from "../store/useGraphStore";
 
 const MainLayout = () => {
   const cyInstance = useRef<Core | null>(null);
@@ -31,42 +30,10 @@ const MainLayout = () => {
   // console.log('🔢 Node Counter:', nodeCounter);
   // console.groupEnd();
 
-  // *note: KT chạy thuật toán euler tìm cách để có thẻ chỉ cần thay thế đoạn thuật toán thành thuật toán khác || chạy code thì tô đậm phần đang chạy lên ✅
+  const { handleChangeStart } = useAlgorithm(cyInstance, startNodeRef, isDirectedGraph);
+  const { animateIsPause, handlePlayAlgorithm, nextStep, resetAnimation } = useRunGraphAlgorithm(cyInstance, startNodeRef, isDirectedGraph);
 
 
-  const { findEulerPath, handleChangeStart } = useAlgorithm(cyInstance, startNodeRef, isDirectedGraph);
-  const { animateIsPause, handlePlayAlgorithm, nextStep, togglePlayAlgorithm, resetAnimation } = useRunGraphAlgorithm(cyInstance, startNodeRef, isDirectedGraph);
-
-  const { selectAlgorithm, suggestMess } = useGraphStore();
-
-  // const [isTogglePlay, setIsTogglePlay] = useState(false);
-
-  // HANLE FIND EULER
-  // const handlePlayAlgorithm = () => {
-  //   let flag = 0;
-  //   if (!startNodeRef.current) {
-  //     flag = 1;
-  //   }
-
-  //   // MAIN
-  //   const result = findEulerPath(selectAlgorithm);
-  //   if (result.length === 0) return;
-  //   // togglePlayAlgorithm(result);
-  //   handleRunAnimate(result);
-
-  //   // Had error
-  //   if (suggestMess !== "") {
-  //     return;
-  //   }
-  //   // udpate start node if dont select start node before run algorithm
-  //   if (flag === 1)
-  //     handleChangeStart(startNodeRef.current?.data("label"));
-
-
-  //   console.log("Check result EC: ", result);
-  // }
-  // HANLE FIND EULER
-  // console.log("Check toggle play: ", isTogglePlay);
 
   return (
     <>
@@ -94,7 +61,7 @@ const MainLayout = () => {
           <AppSiderbar
             isDirectedGraph={isDirectedGraph}
             handleChangeStart={handleChangeStart}
-            handlePlayAlgorithm={togglePlayAlgorithm}
+            handlePlayAlgorithm={handlePlayAlgorithm}
           />
         </div>
       </div>

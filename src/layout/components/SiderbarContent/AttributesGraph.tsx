@@ -11,7 +11,7 @@ import { useEffect } from "react";
 
 interface AttributesGraphType {
   handleChangeStart: (value: string) => void,
-  handlePlayAlgorithm: () => void,
+  handlePlayAlgorithm: (stepByStep: boolean) => void,
 }
 
 const AttributesGraph = ({ handleChangeStart, handlePlayAlgorithm }: AttributesGraphType) => {
@@ -106,7 +106,7 @@ const AttributesGraph = ({ handleChangeStart, handlePlayAlgorithm }: AttributesG
           <span className="text-xs text-red-600/80">{suggestMess}</span>
         </div>
         <div className="pt-2">
-          <Button variant="destructive" className="w-full" onClick={handlePlayAlgorithm}>
+          <Button variant="destructive" className="w-full" onClick={() => handlePlayAlgorithm(runMode === RUN_MODE.STEP)}>
             <Play />
             <span>Chạy thuật toán</span>
           </Button>

@@ -9,6 +9,11 @@ export const useRunGraphAlgorithm = (
   startNodeRef: React.RefObject<NodeSingular | null>,
   isDirectedGraph: boolean,
 ) => {
+
+
+  const { findEulerPath, handleChangeStart } = useAlgorithm(cyInstanceRef, startNodeRef, isDirectedGraph);
+  const { selectAlgorithm, suggestMess } = useGraphStore();
+
   const [eulerAnimateStep, setEulerAnimateStep] = useState(0);
   const [animateInterval, setAnimateInterval] = useState<NodeJS.Timeout | null>(null);
   const [animateIsPause, setAnimateIsPause] = useState<boolean>(true);
@@ -121,7 +126,7 @@ export const useRunGraphAlgorithm = (
     if (newStep >= path.length - 1) {
       cy.$id(nextNodeId).addClass("end");
       toast.success("Tìm thấy chu trình Euler");
-
+      setAnimateIsPause(true);
       return;
     }
   }
@@ -140,56 +145,13 @@ export const useRunGraphAlgorithm = (
     setAnimateIsPause(true);
   }
 
-  const { findEulerPath, handleChangeStart } = useAlgorithm(cyInstanceRef, startNodeRef, isDirectedGraph);
-  const { selectAlgorithm, suggestMess } = useGraphStore();
-
-
-  const handleGetEulerPath = () => {
-    const needUpdateStart = !startNodeRef.current;
-
-    // MAIN
-    const result = findEulerPath(selectAlgorithm);
-    if (result.length === 0) return [];
-    // Had error
-    if (suggestMess !== "") {
-      return [];
-    }
-    if (needUpdateStart && startNodeRef.current) {
-      handleChangeStart(startNodeRef.current.data("label"));
-    }
-
-    return result;
-  }
-
-  const togglePlayAlgorithm = (stepByStep: boolean = false) => {
-    if (animateInterval) {
-      clearTimeout(animateInterval);
-      setAnimateInterval(null);
-
-      setAnimateIsPause(true);
-    } else if (animateIsPause) {
-      const EC = handleGetEulerPath();
-      if (EC.length === 0) return;
-      console.log("Check EC: ", EC);
-      handleRunAnimate(EC, stepByStep);
-      // setAnimateIsPause(true);
-    }
-  }
-
-
-
   const handlePlayAlgorithm = (stepByStep: boolean = false) => {
     const needUpdateStart = !startNodeRef.current
 
     // MAIN
     const result = findEulerPath(selectAlgorithm);
-    if (result.length === 0) return;
+    if (result.length === 0 && suggestMess !== "") return;
 
-
-    // Had error
-    if (suggestMess !== "") {
-      return;
-    }
     // udpate start node if dont select start node before run algorithm
     if (needUpdateStart && startNodeRef.current) {
       handleChangeStart(startNodeRef.current.data("label"));
@@ -206,11 +168,8 @@ export const useRunGraphAlgorithm = (
     animateIsPause,
     handlePlayAlgorithm,
 
-
-
     handleRunAnimate,
     nextStep,
-    togglePlayAlgorithm,
     resetAnimation,
   }
 
