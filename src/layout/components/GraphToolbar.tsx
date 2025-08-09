@@ -17,6 +17,7 @@ import { Checkbox } from "../../components/ui/checkbox";
 import { Label } from "../../components/ui/label";
 import type { CheckedState } from "@radix-ui/react-checkbox";
 import { RUN_MODE } from "../../utils/constant";
+import { ScrollArea } from "../../components/ui/scroll-area";
 
 interface GraphToolbarProps {
   cyInstance: React.RefObject<Core | null>,
@@ -41,7 +42,7 @@ const GraphToolbar = ({
 }: GraphToolbarProps) => {
 
   const { runMode, selectedElements, handleResetSelectedElement, updateRunMode } = useGraphStore();
-  const { updateNodeDegree, handleResetStatus, handleLoadStatusFormFile, nodeDegrees } = useGraphStatusStore();
+  const { result, updateNodeDegree, handleResetStatus, handleLoadStatusFormFile, nodeDegrees } = useGraphStatusStore();
   const [currentLayout, setCurrentLayout] = useState("grid");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -285,7 +286,8 @@ const GraphToolbar = ({
     } else updateRunMode(RUN_MODE.AUTO);
   }
 
-  console.log("Check animateIsPause: ", animateIsPause);
+  console.log("Check data result: ", result);
+
   return (
     <div className="w-full p-4">
       <div className="">
@@ -417,21 +419,53 @@ const GraphToolbar = ({
           </div>
         </div>
       </div>
-      <div className="mt-4 w-full">
+      <div className="mt-2 w-full">
         <div className="flex gap-4">
           <div className="w-1/2 space-y-1">
             <div className="whitespace-nowrap font-semibold italic">Input:</div>
             <Textarea
               placeholder="Nhập thông tin đồ thị khi import"
-              className="bg-white h-[100px] resize-none"
+              className="bg-white h-[125px] resize-none"
             />
           </div>
           <div className="w-1/2 space-y-1">
             <div className="whitespace-nowrap font-semibold italic">Output:</div>
-            <Textarea
-              readOnly
-              className="h-[100px] bg-white resize-none"
-            />
+            <ScrollArea className="h-[125px] rounded-md border border-zinc-400/30 p-2 bg-white">
+              {result && result.eulerCycle.length > 0 && result.stepInfo.length > 0 &&
+                <div className="flex flex-col text-xs">
+                  <div className="pb-1 mb-1 border-b-2 border-dashed border-zinc-400">
+                    <span className="font-semibold italic">Chu trình euler:</span>
+                    <span className="font-medium text-green-500"> {result.eulerCycle.map(item => cyInstance.current?.$id(item).data("label")).join(" -> ")}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-semibold italic">Các bước thực hiện: </p>
+                    {result.stepInfo.map(item => (
+                      <div>
+                        <div className="space-x-1">
+                          <span className="font-medium">&nbsp;&nbsp; - &nbsp;Bước {item.step}:</span>
+                          <span>{item.description}</span>
+
+                        </div>
+                        <div className="pl-[67px] space-x-1">
+                          {item.stack &&
+                            <span>
+                              <span className="text-blue-500">Stack:</span>
+                              {item.stack.length > 0 ? `[ ${item.stack.map(item => cyInstance.current?.$id(item).data("label")).join(", ")} ]` : "[]"}
+                            </span>
+                          }
+                          {item.eulerCycle &&
+                            <span>
+                              <span className="text-green-500">EC:</span>
+                              {item.eulerCycle.length > 0 ? `[ ${item.eulerCycle.map(item => cyInstance.current?.$id(item).data("label")).join(", ")} ]` : "[]"}
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              }
+            </ScrollArea>
           </div>
         </div>
       </div>

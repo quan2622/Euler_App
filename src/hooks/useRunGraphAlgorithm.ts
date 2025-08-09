@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAlgorithm } from "./useAlgorithm";
 import { useGraphStore } from "../store/useGraphStore";
+import { useGraphStatusStore } from "../store/useGraphStatusStore";
 
 export const useRunGraphAlgorithm = (
   cyInstanceRef: React.RefObject<Core | null>,
@@ -13,6 +14,7 @@ export const useRunGraphAlgorithm = (
 
   const { findEulerPath, handleChangeStart } = useAlgorithm(cyInstanceRef, startNodeRef, isDirectedGraph);
   const { selectAlgorithm, suggestMess } = useGraphStore();
+  const { updateIsEndAlgorithm } = useGraphStatusStore();
 
   const [eulerAnimateStep, setEulerAnimateStep] = useState(0);
   const [animateInterval, setAnimateInterval] = useState<NodeJS.Timeout | null>(null);
@@ -68,6 +70,8 @@ export const useRunGraphAlgorithm = (
       if (step >= path.length - 1) {
         setAnimateInterval(null);
         setAnimateIsPause(true);
+        updateIsEndAlgorithm(true);
+
         return;
       }
 
@@ -86,6 +90,7 @@ export const useRunGraphAlgorithm = (
 
         setAnimateInterval(null);
         setAnimateIsPause(true);
+        updateIsEndAlgorithm(true);
         return;
       }
       console.log(">> my check: ", stepByStep);
@@ -112,6 +117,8 @@ export const useRunGraphAlgorithm = (
     const currStep = eulerAnimateStep;
     if (currStep >= path.length - 1) {
       toast.info("Đã hoàn thành tất cả các bước");
+      updateIsEndAlgorithm(true);
+
       return;
     }
 
@@ -127,6 +134,7 @@ export const useRunGraphAlgorithm = (
       cy.$id(nextNodeId).addClass("end");
       toast.success("Tìm thấy chu trình Euler");
       setAnimateIsPause(true);
+      updateIsEndAlgorithm(true);
       return;
     }
   }
@@ -156,13 +164,13 @@ export const useRunGraphAlgorithm = (
     if (needUpdateStart && startNodeRef.current) {
       handleChangeStart(startNodeRef.current.data("label"));
     }
-
-    console.log("Check result EC: ", result);
-
     // RUN ANIMATE
     handleRunAnimate(result, stepByStep);
   }
 
+  // useEffect(() => {
+  //   console.log("My check toggle")
+  // }, [animateIsPause]);
 
   return {
     animateIsPause,

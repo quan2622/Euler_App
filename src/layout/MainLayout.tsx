@@ -33,7 +33,9 @@ const MainLayout = () => {
   const { handleChangeStart } = useAlgorithm(cyInstance, startNodeRef, isDirectedGraph);
   const { animateIsPause, handlePlayAlgorithm, nextStep, resetAnimation } = useRunGraphAlgorithm(cyInstance, startNodeRef, isDirectedGraph);
 
+  // const { isEndAlgorithm } = useGraphStatusStore();
 
+  // console.log("Check status run: ", isEndAlgorithm);
 
   return (
     <>

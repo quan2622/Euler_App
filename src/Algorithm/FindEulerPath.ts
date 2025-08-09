@@ -1,3 +1,17 @@
+import type { Core } from "cytoscape";
+
+interface stepInfo {
+  step: number;
+  description: string;
+  eulerCycle?: string[];
+  stack?: string[];
+}
+
+interface AlgorithmResult {
+  step: stepInfo[];
+  eulerCycle: string[];
+}
+
 const counNodeWithDFS = (u: string, adjArr: string[], visited: Map<string, boolean>): number => {
   visited.set(u, true);
   let count = 1;
@@ -36,12 +50,35 @@ const isBridge = (u: string, v: string, adjList: { [key: string]: string[] }, is
 }
 
 class AlgorithmEuler {
-  static Hierholzer = (start: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean): string[] => {
-    const eulerCircle: string[] = [];
+  static Hierholzer = (cyInstanceRef: React.RefObject<Core | null>, start: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean): AlgorithmResult => {
+    const cy = cyInstanceRef.current;
+    if (!cy) return {
+      step: [],
+      eulerCycle: [],
+    };
+
+    const steps: stepInfo[] = [];
+    const stepsCounter = { count: 4 };
+
+    const eulerCycle: string[] = [];
     const stack: string[] = [start];
+    steps.push({
+      step: stepsCounter.count++,
+      description: `Khởi tạo thuật toán Hierholzer. Thêm đỉnh bắt đầu ${cy.$id(start).data("label")} vào stack`,
+      eulerCycle: [],
+      stack: [],
+    });
+
 
     while (stack.length > 0) {
       const curr = stack[stack.length - 1];
+      steps.push({
+        step: stepsCounter.count++,
+        description: `Lấy đỉnh đầu của stack. Xét đỉnh ${cy.$id(curr).data("label")}`,
+        eulerCycle: [...eulerCycle],
+        stack: [...stack],
+      })
+
       if (adjList[curr].length > 0) {
         const next = adjList[curr].pop();
         if (!isDirectedGraph && next) {
@@ -49,16 +86,32 @@ class AlgorithmEuler {
           adjList[next].splice(index, 1);
         }
         stack.push(next!);
+
+        steps.push({
+          step: stepsCounter.count++,
+          description: `Duyệt cạnh kề của ${cy.$id(curr).data("label")}. Đi theo cạnh ('${cy.$id(curr).data("label")}' --> '${cy.$id(next!).data("label")}'), xóa cạnh này và thêm ${cy.$id(next!).data("label")} vào stack.`,
+          eulerCycle: [...eulerCycle],
+          stack: [...stack],
+        })
       } else {
-        eulerCircle.push(stack.pop()!)
+        eulerCycle.push(stack.pop()!)
+        steps.push({
+          step: stepsCounter.count++,
+          description: `Đỉnh ${cy.$id(curr).data("label")} không còn cạnh kề, thêm ${cy.$id(curr).data("label")} vào Euler circle và quay lui.`,
+          eulerCycle: [...eulerCycle],
+          stack: [...stack],
+        })
       }
     };
 
-    return eulerCircle.reverse();
+    return {
+      step: steps,
+      eulerCycle: eulerCycle.reverse(),
+    };
   }
 
   static Flery = (start: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean): string[] => {
-    const eulerCircle: string[] = [];
+    const eulerCycle: string[] = [];
     const stack: string[] = [start];
 
     while (stack.length > 0) {
@@ -84,11 +137,12 @@ class AlgorithmEuler {
           adjList[next].splice(index, 1);
         }
       } else {
-        eulerCircle.push(stack.pop()!)
+        eulerCycle.push(stack.pop()!)
       }
     }
-    return eulerCircle.reverse();
+    return eulerCycle.reverse();
   }
 }
 
 export default AlgorithmEuler;
+export type { stepInfo, AlgorithmResult };

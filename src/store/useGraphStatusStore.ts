@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import type { AlgorithmResult, stepInfo } from "../Algorithm/FindEulerPath"
 
 
 type State = {
@@ -11,9 +12,17 @@ type State = {
   nodeLabels: string[],
   edgeCounter: number,
   nodeCounter: number,
+
+  isEndAlgorithm: boolean,
+  result: {
+    eulerCycle: string[],
+    stepInfo: stepInfo[],
+  },
 }
 
 type Action = {
+  updateResult: ({ step, eulerCycle }: AlgorithmResult) => void,
+  updateIsEndAlgorithm: (newValue: boolean) => void,
   updateInterConnect: (interconnects: string[][]) => void,
   updateNodeDegree: (sourceId: string, targetId: string, isDerectedGraph: boolean, isAdd?: boolean) => void,
   initDegreeForNode: (nodeId: string) => void,
@@ -37,7 +46,18 @@ export const useGraphStatusStore = create<State & Action>((set) => ({
   nodeLabels: [],
   edgeCounter: 1,
   nodeCounter: 1,
+  isEndAlgorithm: false,
+  result: {
+    eulerCycle: [],
+    stepInfo: [],
+  },
 
+  updateResult: ({ step, eulerCycle }: AlgorithmResult) => {
+    set({ result: { stepInfo: step, eulerCycle: eulerCycle } });
+  },
+  updateIsEndAlgorithm: (newValue) => {
+    set({ isEndAlgorithm: newValue });
+  },
   handleInit: () => {
     set({ isReady: true });
   },
@@ -76,21 +96,24 @@ export const useGraphStatusStore = create<State & Action>((set) => ({
         nodeDegrees[target] = { ...(nodeDegrees[target] || { in: 0, out: 0, total: 0 }) };
 
         edgeCounter += 1;
-        if (isDerectedGraph) {
-          nodeDegrees[source].out += 1;
-          nodeDegrees[target].in += 1;
-        }
+        // if (isDerectedGraph) {
+        //   nodeDegrees[source].out += 1;
+        //   nodeDegrees[target].in += 1;
+        // }
+
+        nodeDegrees[source].out += 1;
+        nodeDegrees[target].in += 1;
 
         nodeDegrees[source].total += 1;
         nodeDegrees[target].total += 1;
       } else {
         edgeCounter -= 1;
-        if (isDerectedGraph) {
-          if (Object.prototype.hasOwnProperty.call(nodeDegrees, source))
-            nodeDegrees[source].out -= 1;
-          if (Object.prototype.hasOwnProperty.call(nodeDegrees, target))
-            nodeDegrees[target].in -= 1;
-        }
+        // if (isDerectedGraph) {
+        if (Object.prototype.hasOwnProperty.call(nodeDegrees, source))
+          nodeDegrees[source].out -= 1;
+        if (Object.prototype.hasOwnProperty.call(nodeDegrees, target))
+          nodeDegrees[target].in -= 1;
+        // }
         if (Object.prototype.hasOwnProperty.call(nodeDegrees, source))
           nodeDegrees[source].total -= 1;
         if (Object.prototype.hasOwnProperty.call(nodeDegrees, target))
