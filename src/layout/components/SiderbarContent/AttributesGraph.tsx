@@ -10,13 +10,18 @@ import { useGraphStore } from "../../../store/useGraphStore";
 import { useEffect } from "react";
 
 interface AttributesGraphType {
+  isDirectedGraph: boolean,
   handleChangeStart: (value: string) => void,
   handlePlayAlgorithm: (stepByStep: boolean) => void,
 }
 
-const AttributesGraph = ({ handleChangeStart, handlePlayAlgorithm }: AttributesGraphType) => {
+const AttributesGraph = ({
+  isDirectedGraph,
+  handleChangeStart,
+  handlePlayAlgorithm
+}: AttributesGraphType) => {
   const { nodeCounter, edgeCounter, nodeLabels, interconnects } = useGraphStatusStore();
-  const { selectAlgorithm, runMode, startNode, suggestMess, updateOddNode, updateSuggestMess, updateRunMode, updateSelectedAlgorithm } = useGraphStore();
+  const { selectAlgorithm, runMode, startNode, suggestMess, layoutGraph, updateOddNode, updateSuggestMess, updateRunMode, updateSelectedAlgorithm } = useGraphStore();
 
 
   useEffect(() => {
@@ -46,20 +51,16 @@ const AttributesGraph = ({ handleChangeStart, handlePlayAlgorithm }: AttributesG
               <span>{(edgeCounter - 1)! || 0}</span>
             </div>
             <div className="flex justify-between">
-              <span>Bố cục:</span>
-              <span className="capitalize">?currentLayout</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Đồ thị có hướng hay không:</span>
-              <span>?Vô hướng</span>
-            </div>
-            <div className="flex justify-between">
               <span>Số miền liên thông:</span>
               <span>{interconnects.length}</span>
             </div>
             <div className="flex justify-between">
-              <span>Chu trình Euler:</span>
-              <span>?Có hoặc không</span>
+              <span>Bố cục:</span>
+              <span className="capitalize">{layoutGraph}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Đồ thị có hướng hay không:</span>
+              <span>{isDirectedGraph ? "Có hướng" : "Vô hướng"}</span>
             </div>
           </CardContent>
         </Card>

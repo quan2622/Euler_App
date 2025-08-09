@@ -46,7 +46,7 @@ const GraphToolbar = ({
   handleChangeStart,
 }: GraphToolbarProps) => {
 
-  const { runMode, selectedElements, handleResetSelectedElement, updateRunMode } = useGraphStore();
+  const { runMode, selectedElements, handleResetSelectedElement, updateRunMode, updateLayoutGraph } = useGraphStore();
   const { result, updateResult, updateNodeDegree, handleResetStatus, handleLoadStatusFormFile, nodeDegrees } = useGraphStatusStore();
   const [currentLayout, setCurrentLayout] = useState("grid");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -62,6 +62,8 @@ const GraphToolbar = ({
     const cy = cyInstance.current
 
     if (!cy) return;
+    updateLayoutGraph(layout)
+
     const layoutOptions: any = {
       grid: { name: "grid", rows: 6, cols: 6 },
       circle: { name: "circle", radius: 200 },

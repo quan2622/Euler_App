@@ -26,6 +26,7 @@ const AppSiderbar = ({ isDirectedGraph, handleChangeStart, handlePlayAlgorithm }
           </TabsList>
           <TabsContent value="attribute">
             <AttributesGraph
+              isDirectedGraph={isDirectedGraph}
               handleChangeStart={handleChangeStart}
               handlePlayAlgorithm={handlePlayAlgorithm}
             />

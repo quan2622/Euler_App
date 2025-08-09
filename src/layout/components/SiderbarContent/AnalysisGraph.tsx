@@ -1,4 +1,4 @@
-import { Grid3x3, Network } from "lucide-react"
+import { Grid3x3, Network, Replace } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
 import { ScrollArea } from "../../../components/ui/scroll-area"
 import { useGraphStatusStore } from "../../../store/useGraphStatusStore"
@@ -10,11 +10,13 @@ interface AnalysisGraphType {
 
 
 const AnalysisGraph = ({ isDirectedGraph }: AnalysisGraphType) => {
-  const { adjacencyMatrix, nodeLabels, interconnects } = useGraphStatusStore();
+  const { adjacencyMatrix, nodeLabels, interconnects, nodeDegrees } = useGraphStatusStore();
+  console.log("Check node degree: ", nodeDegrees);
   return (
     <>
       <ScrollArea className="h-[82vh] p-4 pt-2 pb-2">
         <div className="space-y-4">
+          {/* Ma trận kề */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex space-x-2">
@@ -56,11 +58,52 @@ const AnalysisGraph = ({ isDirectedGraph }: AnalysisGraphType) => {
               }
             </CardContent>
           </Card>
-
-          {isDirectedGraph &&
-            <div>có hướng</div>
-          }
-
+          {/* Danh sách thông tin đỉnh */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex space-x-2">
+                <Replace />
+                <span>Thông tin các đỉnh</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-xs pt-2">
+              {Object.keys(nodeDegrees).length === 0 ? (
+                <div className="text-gray-500">Không có đỉnh nào!</div>
+              ) : (
+                Object.entries(nodeDegrees).map(([node, degrees]) => (
+                  <div key={node} className="border-b border-gray-200 pb-2 last:border-b-0">
+                    <div className="flex justify-between">
+                      <span>Đỉnh {node}:</span>
+                      {isDirectedGraph ? (
+                        <>
+                          <span className="space-x-1">
+                            <span>Bậc vào: {degrees.in} -</span>
+                            <span>Bậc ra: {degrees.out}</span>
+                          </span>
+                          <span className="text-blue-600">
+                            Tổng bậc: {degrees.total}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-blue-600">
+                          Bậc: {degrees.total}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+              <div className="pt-2">
+                <div className="flex justify-between">
+                  <span className="font-semibold">Tổng số đỉnh:</span>
+                  <span className="text-blue-600 font-semibold">
+                    {Object.keys(nodeDegrees).length}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Miền liên thống */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex space-x-2">

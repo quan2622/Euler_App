@@ -8,9 +8,11 @@ type State = {
   suggestMess: string,
   runMode: string,
   selectAlgorithm: string,
+  layoutGraph: string,
 }
 
 type Action = {
+  updateLayoutGraph: (newLayout: string) => void
   handleResetSelectedElement: () => void,
   handleAddSelectedElements: (elementId: string) => void
   handleRemoveSelectedElements: (elementId: string) => void
@@ -28,7 +30,11 @@ export const useGraphStore = create<State & Action>((set) => ({
   suggestMess: "",
   runMode: RUN_MODE.AUTO,
   selectAlgorithm: ALGORITHM_SELECT.HIERHOLZER,
+  layoutGraph: "grid",
 
+  updateLayoutGraph: (newLayout) => {
+    set({ layoutGraph: newLayout });
+  },
   updateSelectedAlgorithm: (newAlgorithm) => {
     set({ selectAlgorithm: newAlgorithm });
   },
