@@ -2,12 +2,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Core, EdgeSingular, NodeSingular } from "cytoscape"
 import { Button } from "../../components/ui/button"
-import { useCallback, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { useGraphStore } from "../../store/useGraphStore";
 import { GraphService } from "../../services/graphService";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Eraser, FileDown, FileUp, Fullscreen, Pause, Play, RotateCcw, Shrink, SkipForward, Trash2, ZoomIn, ZoomOut } from "lucide-react";
+import { Eraser, FileDown, FileUp, Fullscreen, Pause, PencilRuler, Play, RotateCcw, Scaling, Shrink, SkipForward, Trash2, ZoomIn, ZoomOut } from "lucide-react";
 import { useGraphStatusStore } from "../../store/useGraphStatusStore";
 import { Input } from "../../components/ui/input";
 import { Switch } from "../../components/ui/switch";
@@ -18,9 +18,12 @@ import { Label } from "../../components/ui/label";
 import type { CheckedState } from "@radix-ui/react-checkbox";
 import { RUN_MODE } from "../../utils/constant";
 import { ScrollArea } from "../../components/ui/scroll-area";
+import type { ElementDefinition } from "cytoscape";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 
 interface GraphToolbarProps {
   cyInstance: React.RefObject<Core | null>,
+  startNodeRef: React.RefObject<NodeSingular | null>
   isDirectedGraph: boolean,
   animateIsPause: boolean,
 
@@ -28,23 +31,26 @@ interface GraphToolbarProps {
   nextStep: () => void,
   resetAnimation: () => void,
   handlePlayAlgorithm: (stepByStep: boolean) => void,
+  handleChangeStart: (value: string) => void
 }
 
 const GraphToolbar = ({
   cyInstance,
+  startNodeRef,
   isDirectedGraph,
   animateIsPause,
   onToggleDirected,
   nextStep,
   resetAnimation,
-  handlePlayAlgorithm
-
+  handlePlayAlgorithm,
+  handleChangeStart,
 }: GraphToolbarProps) => {
 
   const { runMode, selectedElements, handleResetSelectedElement, updateRunMode } = useGraphStore();
-  const { result, updateNodeDegree, handleResetStatus, handleLoadStatusFormFile, nodeDegrees } = useGraphStatusStore();
+  const { result, updateResult, updateNodeDegree, handleResetStatus, handleLoadStatusFormFile, nodeDegrees } = useGraphStatusStore();
   const [currentLayout, setCurrentLayout] = useState("grid");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isOpenDialog, setIsOpenDialog] = useState(false);
 
   // ===== ZOOM AND PAN CONTROLS =====
   const zoomIn = () => cyInstance.current?.zoom(cyInstance.current.zoom() * 1.2)
@@ -163,6 +169,8 @@ const GraphToolbar = ({
     cy.elements().remove();
     handleResetSelectedElement();
     handleResetStatus();
+    updateResult({ stepInfo: [], eulerCycle: [] });
+    startNodeRef.current = null;
   }, [handleResetSelectedElement, handleResetStatus]);
 
   const exportGraph = useCallback(() => {
@@ -286,7 +294,84 @@ const GraphToolbar = ({
     } else updateRunMode(RUN_MODE.AUTO);
   }
 
-  console.log("Check data result: ", result);
+  const inputDataGraphRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const handleGenerateGraph = () => {
+    const cy = cyInstance.current;
+
+    if (!cy || !inputDataGraphRef.current) {
+      console.error("Cytoscape instance hoặc textarea ref chưa sẵn sàng.");
+      return;
+    }
+
+    clearGraph();
+    cy.elements().remove();
+    const textAreaValue = inputDataGraphRef.current.value;
+    const lines = textAreaValue.trim().split("\n");
+    const elementsToAdd: ElementDefinition[] = [];
+    const nodeLabels = new Set();
+
+    lines.forEach(line => {
+      // Bỏ qua các dòng trống
+      if (line.trim() === '') return;
+
+      // Tách dòng thành các phần: đỉnh nguồn, đỉnh đích, (tùy chọn) trọng số
+      const parts = line.trim().split(/\s+/);
+      console.log("Check part: ", parts);
+      if (parts.length >= 2) {
+        const source = parts[0];
+        const target = parts[1];
+
+        nodeLabels.add(source);
+        nodeLabels.add(target);
+
+        elementsToAdd.push({
+          group: 'edges',
+          data: {
+            id: `e-${source}-${target}-${Math.random()}`, // Tạo ID duy nhất cho cạnh
+            source: `n-${source}`,
+            target: `n-${target}`,
+          }
+        });
+      }
+    });
+
+    nodeLabels.forEach(label => {
+      elementsToAdd.push({
+        group: 'nodes',
+        data: {
+          id: `n-${label}`,
+          label: label,
+        }
+      });
+    });
+
+    cy.add(elementsToAdd);
+    const maxNode = Math.max(0, cy.nodes().length);
+    const maxEdge = Math.max(0, cy.edges().length);
+    handleLoadStatusFormFile(maxNode + 1, maxEdge + 1);
+
+    // update node degree
+    cy.edges().map(edge => {
+      const sourceId = edge.data('source');
+      const targetId = edge.data('target');
+
+      const source = cy.$id(sourceId).data("label");
+      const target = cy.$id(targetId).data("label");
+
+      updateNodeDegree(source, target, isDirectedGraph);
+    })
+
+    handleChangeStart("");
+
+    cy.layout({
+      name: 'cose',
+      animate: true,
+      idealEdgeLength: 100,
+      nodeOverlap: 20,
+      randomize: true
+    }).run();
+  }
 
   return (
     <div className="w-full p-4">
@@ -423,49 +508,177 @@ const GraphToolbar = ({
         <div className="flex gap-4">
           <div className="w-1/2 space-y-1">
             <div className="whitespace-nowrap font-semibold italic">Input:</div>
-            <Textarea
-              placeholder="Nhập thông tin đồ thị khi import"
-              className="bg-white h-[125px] resize-none"
-            />
+            <div className="relative group">
+              <Textarea
+                ref={inputDataGraphRef}
+                placeholder="Nhập thông tin đồ thị. Vd: A B || B C"
+                className="bg-white h-[125px] resize-none"
+              />
+              <TooltipProvider delayDuration={50}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button className="absolute top-1 right-1 opacity-0 group-hover:top-3 group-hover:right-3 group-hover:opacity-100 transition-all duration-150 ease-linear"
+                      onClick={handleGenerateGraph}
+                      variant={"outline"} size={"icon"}
+                    >
+                      <PencilRuler />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-zinc-100 text-zinc-800 shadow-sm shadow-gray-500">
+                    <p className="flex items-center font-semibold">Tạo đồ thị</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
           <div className="w-1/2 space-y-1">
             <div className="whitespace-nowrap font-semibold italic">Output:</div>
-            <ScrollArea className="h-[125px] rounded-md border border-zinc-400/30 p-2 bg-white">
-              {result && result.eulerCycle.length > 0 && result.stepInfo.length > 0 &&
-                <div className="flex flex-col text-xs">
-                  <div className="pb-1 mb-1 border-b-2 border-dashed border-zinc-400">
-                    <span className="font-semibold italic">Chu trình euler:</span>
-                    <span className="font-medium text-green-500"> {result.eulerCycle.map(item => cyInstance.current?.$id(item).data("label")).join(" -> ")}</span>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="font-semibold italic">Các bước thực hiện: </p>
-                    {result.stepInfo.map(item => (
-                      <div>
-                        <div className="space-x-1">
-                          <span className="font-medium">&nbsp;&nbsp; - &nbsp;Bước {item.step}:</span>
-                          <span>{item.description}</span>
-
-                        </div>
-                        <div className="pl-[67px] space-x-1">
-                          {item.stack &&
-                            <span>
-                              <span className="text-blue-500">Stack:</span>
-                              {item.stack.length > 0 ? `[ ${item.stack.map(item => cyInstance.current?.$id(item).data("label")).join(", ")} ]` : "[]"}
-                            </span>
-                          }
-                          {item.eulerCycle &&
-                            <span>
-                              <span className="text-green-500">EC:</span>
-                              {item.eulerCycle.length > 0 ? `[ ${item.eulerCycle.map(item => cyInstance.current?.$id(item).data("label")).join(", ")} ]` : "[]"}
-                            </span>
-                          }
-                        </div>
+            <div className="relative group">
+              <ScrollArea className="h-[125px] rounded-md border border-zinc-400/30 p-2 bg-white">
+                {result && result.eulerCycle.length > 0 && result.stepInfo.length > 0 &&
+                  <div className="flex flex-col text-xs">
+                    <div className="pb-1 mb-1 border-b-2 border-dashed border-zinc-400">
+                      <div className="font-bold italic">
+                        {result.isCycle ?
+                          "Đồ thị có chu trình Euler" : "Đồ thị có đường đi Euler"
+                        }
                       </div>
-                    ))}
+                      <span className="font-semibold italic">
+                        {result.eulerCycle[0] === result.eulerCycle[result.eulerCycle.length - 1] ?
+                          "Chu trình Euler:"
+                          :
+                          "Đường đi Euler:"
+                        }
+
+                      </span>
+                      <span className="font-medium text-green-500"> {result.eulerCycle.map(item => cyInstance.current?.$id(item).data("label")).join(" -> ")}</span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-semibold italic">Các bước thực hiện: </p>
+                      {result.stepInfo.map(item => (
+                        <div>
+                          <div className="space-x-1">
+                            <span className="font-medium">&nbsp;&nbsp; - &nbsp;Bước {item.step}:</span>
+                            <span>{item.description}</span>
+
+                          </div>
+                          <div className="pl-[67px] space-x-1">
+                            {item.stack &&
+                              <span>
+                                <span className="text-blue-500">Stack:</span>
+                                {item.stack.length > 0 ? ` [ ${item.stack.map(item => cyInstance.current?.$id(item).data("label")).join(", ")} ]` : " []"}
+                              </span>
+                            }
+                            {item.eulerCycle &&
+                              <span>
+                                <span className="text-green-500">EC:</span>
+                                {item.eulerCycle.length > 0 ? ` [ ${item.eulerCycle.map(item => cyInstance.current?.$id(item).data("label")).join(", ")} ]` : " []"}
+                              </span>
+                            }
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              }
-            </ScrollArea>
+                }
+
+                {result &&
+                  <div className="text-xs">
+                    {result.errMess !== "" &&
+                      <span className="text-red-500">{result.errMess}</span>
+                    }
+                    {result.sugMess !== "" &&
+                      <span className="text-orange-500">{result.sugMess}</span>
+                    }
+                  </div>
+                }
+              </ScrollArea>
+              <TooltipProvider delayDuration={50}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      className="absolute top-1 right-1 opacity-0 group-hover:top-3 group-hover:right-3 group-hover:opacity-100 transition-all duration-150 ease-linear"
+                      variant="outline" size="icon"
+                      onClick={() => setIsOpenDialog(true)}
+                    >
+                      <Scaling className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-zinc-100 text-zinc-800 shadow-sm shadow-gray-500">
+                    <p className="flex items-center font-semibold">Xem chi tiết</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+                <DialogContent
+                  className="max-w-3xl"
+                  onInteractOutside={(e) => e.preventDefault()}
+                >
+                  <DialogHeader>
+                    <DialogTitle className="text-center mb-4">Thông tin chi tiết kết quả</DialogTitle>
+                    <ScrollArea className="h-[400px] rounded-md border border-zinc-400/30 p-2">
+                      {result && result.eulerCycle.length > 0 && result.stepInfo.length > 0 &&
+                        <div className="flex flex-col text-xs">
+                          <div className="pb-1 mb-1 border-b-2 border-dashed border-zinc-400">
+                            <div className="font-bold italic">
+                              {result.isCycle ?
+                                "Đồ thị có chu trình Euler" : "Đồ thị có đường đi Euler"
+                              }
+                            </div>
+                            <span className="font-semibold italic">
+                              {result.eulerCycle[0] === result.eulerCycle[result.eulerCycle.length - 1] ?
+                                "Chu trình Euler:"
+                                :
+                                "Đường đi Euler:"
+                              }
+
+                            </span>
+                            <span className="font-medium text-green-500"> {result.eulerCycle.map(item => cyInstance.current?.$id(item).data("label")).join(" -> ")}</span>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="font-semibold italic">Các bước thực hiện: </p>
+                            {result.stepInfo.map(item => (
+                              <div>
+                                <div className="space-x-1">
+                                  <span className="font-medium">&nbsp;&nbsp; - &nbsp;Bước {item.step}:</span>
+                                  <span>{item.description}</span>
+
+                                </div>
+                                <div className="pl-[67px] space-x-1">
+                                  {item.stack &&
+                                    <span>
+                                      <span className="text-blue-500">Stack:</span>
+                                      {item.stack.length > 0 ? ` [ ${item.stack.map(item => cyInstance.current?.$id(item).data("label")).join(", ")} ]` : " []"}
+                                    </span>
+                                  }
+                                  {item.eulerCycle &&
+                                    <span>
+                                      <span className="text-green-500">EC:</span>
+                                      {item.eulerCycle.length > 0 ? ` [ ${item.eulerCycle.map(item => cyInstance.current?.$id(item).data("label")).join(", ")} ]` : " []"}
+                                    </span>
+                                  }
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      }
+
+                      {result &&
+                        <div className="text-xs">
+                          {result.errMess !== "" &&
+                            <span className="text-red-500">{result.errMess}</span>
+                          }
+                          {result.sugMess !== "" &&
+                            <span className="text-orange-500">{result.sugMess}</span>
+                          }
+                        </div>
+                      }
+                    </ScrollArea>
+                  </DialogHeader>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </div>
       </div>
