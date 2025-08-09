@@ -1,38 +1,30 @@
 import type { Core } from "cytoscape";
+import type { AlgorithmDataRunning, stepInfo } from "../types/graph.type";
 
-interface stepInfo {
-  step: number;
-  description: string;
-  eulerCycle?: string[];
-  stack?: string[];
-}
-
-interface AlgorithmResult {
-  step: stepInfo[];
-  eulerCycle: string[];
-}
-
-const counNodeWithDFS = (u: string, adjArr: string[], visited: Map<string, boolean>): number => {
-  visited.set(u, true);
+const counNodeWithDFS = (start: string, adjList: { [key: string]: string[] }, visited: Map<string, boolean>): number => {
+  visited.set(start, true);
   let count = 1;
-  for (const item of adjArr) {
-    if (!visited.get(u))
-      count += counNodeWithDFS(item, adjArr, visited);
+
+  for (const neighbor of adjList[start] || []) {
+    if (!visited.get(neighbor)) {
+      count += counNodeWithDFS(neighbor, adjList, visited);
+    }
   }
   return count;
 }
 
-const isBridge = (u: string, v: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean) => {
-  const visited = new Map<string, boolean>();
-  for (const [key] of Object.entries(adjList)) {
-    visited.set(key, false);
+const isBridge = (u: string, v: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean): boolean => {
+  if (adjList[u].length === 1) {
+    return false;
   }
-
-  const count_before = counNodeWithDFS(u, adjList[u], visited);
 
   const adjList_clone = Object.fromEntries(
     Object.entries(adjList).map(([k, v]) => [k, [...v]])
   );
+
+  const visited_before = new Map<string, boolean>();
+  Object.keys(adjList).forEach(key => visited_before.set(key, false));
+  const count_before = counNodeWithDFS(u, adjList, visited_before);
 
   let index = adjList_clone[u].indexOf(v);
   adjList_clone[u].splice(index, 1);
@@ -41,16 +33,15 @@ const isBridge = (u: string, v: string, adjList: { [key: string]: string[] }, is
     adjList_clone[v].splice(index, 1);
   }
 
-  for (const [key] of Object.entries(adjList)) {
-    visited.set(key, false);
-  }
-  const count_after = counNodeWithDFS(u, adjList_clone[u], visited);
+  const visited_after = new Map<string, boolean>();
+  Object.keys(adjList_clone).forEach(key => visited_after.set(key, false));
+  const count_after = counNodeWithDFS(u, adjList_clone, visited_after);
 
-  return count_before > count_after;
+  return count_after < count_before;
 }
 
 class AlgorithmEuler {
-  static Hierholzer = (cyInstanceRef: React.RefObject<Core | null>, start: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean): AlgorithmResult => {
+  static Hierholzer = (cyInstanceRef: React.RefObject<Core | null>, start: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean): AlgorithmDataRunning => {
     const cy = cyInstanceRef.current;
     if (!cy) return {
       step: [],
@@ -58,7 +49,7 @@ class AlgorithmEuler {
     };
 
     const steps: stepInfo[] = [];
-    const stepsCounter = { count: 4 };
+    const stepsCounter = { count: 1 };
 
     const eulerCycle: string[] = [];
     const stack: string[] = [start];
@@ -66,7 +57,7 @@ class AlgorithmEuler {
       step: stepsCounter.count++,
       description: `Khởi tạo thuật toán Hierholzer. Thêm đỉnh bắt đầu ${cy.$id(start).data("label")} vào stack`,
       eulerCycle: [],
-      stack: [],
+      stack: [...stack],
     });
 
 
@@ -80,7 +71,7 @@ class AlgorithmEuler {
       })
 
       if (adjList[curr].length > 0) {
-        const next = adjList[curr].pop();
+        const next = adjList[curr].shift();
         if (!isDirectedGraph && next) {
           const index = adjList[next].indexOf(curr);
           adjList[next].splice(index, 1);
@@ -110,39 +101,82 @@ class AlgorithmEuler {
     };
   }
 
-  static Flery = (start: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean): string[] => {
+  static Fleury = (cyInstanceRef: React.RefObject<Core | null>, start: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean): AlgorithmDataRunning => {
+    const cy = cyInstanceRef.current;
+    if (!cy) return {
+      step: [],
+      eulerCycle: [],
+    };
+
+    const steps: stepInfo[] = [];
+    const stepsCounter = { count: 1 };
     const eulerCycle: string[] = [];
-    const stack: string[] = [start];
+    let curr = start;
 
-    while (stack.length > 0) {
-      const u = stack[stack.length - 1];
+    steps.push({
+      step: stepsCounter.count++,
+      description: `Bắt đầu thuật toán Fleury từ đỉnh ${cy.$id(start).data("label")}`,
+      eulerCycle: [],
+    });
 
-      if (adjList[u].length > 0) {
-        let v = adjList[u][adjList[u].length - 1];
-        console.log("Check v: ", v);
-        for (const next of [...adjList[u]].reverse()) {
-          if (!isBridge(u, next, adjList, isDirectedGraph)) {
-            v = next;
-            break;
-          }
-        }
+    while (true) {
+      eulerCycle.push(curr);
+      steps.push({
+        step: stepsCounter.count++,
+        description: `Xét đỉnh ${cy.$id(curr).data("label")}. Kiểm tra đỉnh còn đỉnh kề không?`,
+        eulerCycle: [...eulerCycle],
+      });
 
-        stack.push(v!);
-        let index = adjList[u].indexOf(v);
-        const next = adjList[u][index];
-        console.log("Check next: ", next);
-        adjList[u].splice(index, 1);
-        if (!isDirectedGraph && next) {
-          index = adjList[next].indexOf(u);
-          adjList[next].splice(index, 1);
-        }
-      } else {
-        eulerCycle.push(stack.pop()!)
+      if (adjList[curr].length === 0) {
+        steps.push({
+          step: stepsCounter.count++,
+          description: `Đỉnh ${cy.$id(curr).data("label")} không còn cạnh kề`,
+          eulerCycle: [...eulerCycle],
+        });
+        break;
       }
+
+      let next = null;
+      for (const v of adjList[curr]) {
+        if (!isBridge(curr, v, adjList, isDirectedGraph)) {
+          steps.push({
+            step: stepsCounter.count++,
+            description: `Chọn cạnh ('${cy.$id(curr).data("label")}' --> '${cy.$id(v).data("label")}'): Không phải cạnh cầu`,
+            eulerCycle: [...eulerCycle],
+          });
+          next = v;
+          break;
+        }
+      }
+
+      if (!next) {
+        next = adjList[curr][0];
+        steps.push({
+          step: stepsCounter.count++,
+          description: `Không tìm thấy cạnh không phải cạnh cầu. Chọn cạnh cầu đầu tiên ('${cy.$id(curr).data("label")}' --> '${cy.$id(next).data("label")}')`,
+          eulerCycle: [...eulerCycle],
+        });
+      }
+
+      let index = adjList[curr].indexOf(next);
+      adjList[curr].splice(index, 1);
+      if (!isDirectedGraph) {
+        index = adjList[next].indexOf(curr);
+        adjList[next].splice(index, 1);
+      }
+      steps.push({
+        step: stepsCounter.count++,
+        description: `Xóa cạnh ('${cy.$id(curr).data("label")}' --> '${cy.$id(next).data("label")}')`,
+        eulerCycle: [...eulerCycle],
+      });
+      curr = next;
     }
-    return eulerCycle.reverse();
+
+    return {
+      step: steps,
+      eulerCycle: eulerCycle,
+    };
   }
 }
 
 export default AlgorithmEuler;
-export type { stepInfo, AlgorithmResult };
