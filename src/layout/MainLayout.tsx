@@ -43,6 +43,7 @@ const MainLayout = () => {
         <div className="flex-1 flex flex-col">
           <div className="border-zinc-200 border-b-2 bg-slate-100">
             <GraphToolbar
+              startNodeRef={startNodeRef}
               cyInstance={cyInstance}
               isDirectedGraph={isDirectedGraph}
               onToggleDirected={onToggleDirected}
@@ -50,6 +51,7 @@ const MainLayout = () => {
               resetAnimation={resetAnimation}
               handlePlayAlgorithm={handlePlayAlgorithm}
               animateIsPause={animateIsPause}
+              handleChangeStart={handleChangeStart}
             />
           </div>
           {/* Graph Container */}

@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import type { AlgorithmResult, stepInfo } from "../Algorithm/FindEulerPath"
+import type { AlgorithmResult, stepInfo } from "../types/graph.type";
 
 
 type State = {
@@ -17,11 +17,14 @@ type State = {
   result: {
     eulerCycle: string[],
     stepInfo: stepInfo[],
+    errMess: string,
+    sugMess: string,
+    isCycle: boolean,
   },
 }
 
 type Action = {
-  updateResult: ({ step, eulerCycle }: AlgorithmResult) => void,
+  updateResult: ({ eulerCycle, stepInfo, errMess, sugMess }: AlgorithmResult) => void,
   updateIsEndAlgorithm: (newValue: boolean) => void,
   updateInterConnect: (interconnects: string[][]) => void,
   updateNodeDegree: (sourceId: string, targetId: string, isDerectedGraph: boolean, isAdd?: boolean) => void,
@@ -50,10 +53,18 @@ export const useGraphStatusStore = create<State & Action>((set) => ({
   result: {
     eulerCycle: [],
     stepInfo: [],
+    errMess: "",
+    sugMess: "",
+    isCycle: true,
   },
 
-  updateResult: ({ step, eulerCycle }: AlgorithmResult) => {
-    set({ result: { stepInfo: step, eulerCycle: eulerCycle } });
+  updateResult: (newResult: Partial<AlgorithmResult>) => {
+    set((state) => ({
+      result: {
+        ...state.result,
+        ...newResult,
+      }
+    }));
   },
   updateIsEndAlgorithm: (newValue) => {
     set({ isEndAlgorithm: newValue });

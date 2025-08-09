@@ -76,3 +76,24 @@ export interface GraphRefs {
 export interface MouseEventObject extends EventObject {
   cyPosition?: { x: number; y: number };
 }
+
+// New 
+export interface stepInfo {
+  step: number;
+  description: string;
+  eulerCycle?: string[];
+  stack?: string[];
+}
+
+export interface AlgorithmDataRunning {
+  step: stepInfo[];
+  eulerCycle: string[];
+}
+
+export interface AlgorithmResult {
+  eulerCycle?: string[],
+  stepInfo?: stepInfo[],
+  errMess?: string,
+  sugMess?: string,
+  isCycle?: boolean,
+}

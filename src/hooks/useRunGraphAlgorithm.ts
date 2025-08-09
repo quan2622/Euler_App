@@ -14,7 +14,7 @@ export const useRunGraphAlgorithm = (
 
   const { findEulerPath, handleChangeStart } = useAlgorithm(cyInstanceRef, startNodeRef, isDirectedGraph);
   const { selectAlgorithm, suggestMess } = useGraphStore();
-  const { updateIsEndAlgorithm } = useGraphStatusStore();
+  const { updateIsEndAlgorithm, updateResult } = useGraphStatusStore();
 
   const [eulerAnimateStep, setEulerAnimateStep] = useState(0);
   const [animateInterval, setAnimateInterval] = useState<NodeJS.Timeout | null>(null);
@@ -93,11 +93,9 @@ export const useRunGraphAlgorithm = (
         updateIsEndAlgorithm(true);
         return;
       }
-      console.log(">> my check: ", stepByStep);
       if (!stepByStep) {
         const interval = setTimeout(executeStep, 1000);
         setAnimateInterval(interval);
-        console.log(">> my check 1");
       }
     }
 
@@ -149,13 +147,36 @@ export const useRunGraphAlgorithm = (
     }
 
     cy.elements().removeClass("euler-path end");
-    setEulerAnimateStep(0);
+
+    // RESET STATE INNER HOOK
     setAnimateIsPause(true);
+    setEulerAnimateStep(0);
+    updateIsEndAlgorithm(false);
+    setCurrentEulerPath([]);
+    setVisitedEdges([]);
+
+    // RESET DATA RESULT
+    updateResult({ eulerCycle: [], stepInfo: [], sugMess: "", errMess: "" });
+    handleChangeStart("");
+    startNodeRef.current = null;
   }
 
   const handlePlayAlgorithm = (stepByStep: boolean = false) => {
-    const needUpdateStart = !startNodeRef.current
+    const cy = cyInstanceRef.current;
+    if (!cy) return;
 
+    // RESET OLD DATA
+    cy.elements().removeClass("euler-path end");
+
+    setEulerAnimateStep(0);
+    updateIsEndAlgorithm(false);
+    setCurrentEulerPath([]);
+    setVisitedEdges([]);
+
+    // RESET DATA RESULT
+    updateResult({ eulerCycle: [], stepInfo: [], sugMess: "", errMess: "" });
+
+    const needUpdateStart = !startNodeRef.current
     // MAIN
     const result = findEulerPath(selectAlgorithm);
     if (result.length === 0 && suggestMess !== "") return;

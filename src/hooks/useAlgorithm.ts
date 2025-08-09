@@ -1,9 +1,10 @@
 import type { Core, NodeSingular } from "cytoscape"
 import { useGraphStatusStore } from "../store/useGraphStatusStore"
-import Algorithm, { type stepInfo } from "../Algorithm/FindEulerPath";
+import Algorithm from "../Algorithm/FindEulerPath";
 import { toast } from "sonner";
 import { ALGORITHM_SELECT } from "../utils/constant";
 import { useGraphStore } from "../store/useGraphStore";
+import type { stepInfo } from "../types/graph.type";
 
 export const useAlgorithm = (
   cyInstanceRef: React.RefObject<Core | null>,
@@ -30,6 +31,7 @@ export const useAlgorithm = (
       }
       if (flag > 1) {
         toast.error("Các đỉnh có bậc >= 0 không thuộc cùng 1 thành phần liên thông");
+        updateResult({ errMess: "Các đỉnh có bậc >= 0 không thuộc cùng 1 thành phần liên thông" })
         return false;
       }
     }
@@ -44,23 +46,26 @@ export const useAlgorithm = (
     return true;
   }
 
-  console.log("Check data degree: ", nodeDegrees);
   const checkEvenDegree = () => {
     if (!isDirectedGraph) {
       const oddNode: string[] = [];
+      updateResult({ isCycle: true });
+
       for (const node in nodeDegrees) {
         if (nodeDegrees[node].total % 2 !== 0) {
           oddNode.push(node);
         }
       }
-      console.log("Check odd node: ", oddNode, ' - ', nodeDegrees);
       if (oddNode.length > 0)
         if (oddNode.length !== 2) {
           toast.error(`Đồ thị tồn tại ${oddNode.length} đỉnh bậc lẻ`);
+          updateResult({ errMess: `Đồ thị tồn tại ${oddNode.length} đỉnh bậc lẻ` });
           return false;
         } else {
+          updateResult({ isCycle: false });
           if (!oddNode.includes(startNodeRef.current?.data("label"))) {
             updateSuggestMess(`Đồ thị có 2 đỉnh bậc lẻ. Nên chọn ${oddNode.join(" hoặc ")} làm đỉnh bắt đầu`)
+            updateResult({ sugMess: `Đồ thị có 2 đỉnh bậc lẻ. Nên chọn ${oddNode.join(" hoặc ")} làm đỉnh bắt đầu` })
             updateOddNode(oddNode);
             return false;
           }
@@ -140,10 +145,12 @@ export const useAlgorithm = (
 
     if (type === ALGORITHM_SELECT.HIERHOLZER) {
       const { step, eulerCycle } = Algorithm.Hierholzer(cyInstanceRef, start, adjList, isDirectedGraph);
-      updateResult({ eulerCycle, step });
+      updateResult({ eulerCycle: eulerCycle, stepInfo: step });
       EC = eulerCycle;
     } else if (type === ALGORITHM_SELECT.FLEURY) {
-      EC = Algorithm.Flery(start, adjList, isDirectedGraph);
+      const { step, eulerCycle } = Algorithm.Fleury(cyInstanceRef, start, adjList, isDirectedGraph);
+      updateResult({ eulerCycle: eulerCycle, stepInfo: step });
+      EC = eulerCycle;
     }
     return EC;
   }
@@ -166,14 +173,18 @@ export const useAlgorithm = (
     // Reset status find Euler
     updateOddNode([]);
     updateSuggestMess("");
+    updateResult({ sugMess: "" });
     // Check even node degree
 
     const nodes = cy.nodes();
     nodes.removeClass("start");
     const startNode = nodes?.filter((node) => node.data("label") === value).first();
-    startNode.addClass("start");
-    if (startNode.nonempty() && startNode.isNode()) {
-      startNodeRef.current = startNode;
+
+    if (startNode) {
+      startNode.addClass("start");
+      if (startNode.nonempty() && startNode.isNode()) {
+        startNodeRef.current = startNode;
+      }
     }
   }
 
