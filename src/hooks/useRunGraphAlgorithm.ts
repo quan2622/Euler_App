@@ -1,15 +1,18 @@
 import type { Core, EdgeCollection, EdgeSingular, NodeSingular } from "cytoscape"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAlgorithm } from "./useAlgorithm";
 import { useGraphStore } from "../store/useGraphStore";
 import { useGraphStatusStore } from "../store/useGraphStatusStore";
+import type { stepInfo } from "../types/graph.type";
 
 export const useRunGraphAlgorithm = (
   cyInstanceRef: React.RefObject<Core | null>,
   startNodeRef: React.RefObject<NodeSingular | null>,
   isDirectedGraph: boolean,
 ) => {
+  const [startReult, setStartResult] = useState(false);
+  const [result, setResult] = useState<string[] | null>(null);
 
 
   const { findEulerPath, handleChangeStart } = useAlgorithm(cyInstanceRef, startNodeRef, isDirectedGraph);
@@ -22,9 +25,14 @@ export const useRunGraphAlgorithm = (
   const [currentEulerPath, setCurrentEulerPath] = useState<string[]>([]);
   const [visitedEdges, setVisitedEdges] = useState<string[]>([]);
 
-  const highLightPath = (currNodeId: string, nextNodeId: string, visited: string[]) => {
+  // test
+  const [animationScript, setAnimationScript] = useState<stepInfo[]>([]);
+
+  const highLightPath = (currNodeId: string, nextNodeId: string, visited: string[], type: "traverse" | "unhighlight"): string[] => {
     const cy = cyInstanceRef.current;
-    if (!cy) return;
+    if (!cy) return visited;
+
+    const clone_visited = [...visited];
 
     let selectedEdge: EdgeSingular | null = null;
     let allEdges: EdgeCollection | null = null;
@@ -34,65 +42,138 @@ export const useRunGraphAlgorithm = (
       allEdges = cy.edges(`[source="${currNodeId}"][target="${nextNodeId}"]`);
     }
 
-    for (let i = 0; i < allEdges.length; i++) {
-      const edge = allEdges[i];
-      const edgeId = edge.id();
+    if (type == "traverse") {
+      for (let i = 0; i < allEdges.length; i++) {
+        const edge = allEdges[i];
+        const edgeId = edge.id();
 
-      if (!visited.includes(edgeId)) {
-        selectedEdge = edge;
-        break;
+        if (!visited.includes(edgeId)) {
+          selectedEdge = edge;
+          break;
+        }
+      }
+
+      if (selectedEdge) {
+        clone_visited.push(selectedEdge.id());
+        selectedEdge.addClass("euler-path");
+      }
+    } else {
+      let edgeToUnhighlight: EdgeSingular | null = null;
+      let indexToRemove = -1;
+      const edgeIds = allEdges.map(i => i.id());
+
+      for (let i = clone_visited.length - 1; i >= 0; i--) {
+        const edgeId = clone_visited[i];
+        const edge = cy.$id(edgeId);
+        if (edge.length > 0 && edgeIds.includes(edgeId)) {
+          edgeToUnhighlight = edge;
+          indexToRemove = i;
+          break;
+        }
+      }
+
+      if (edgeToUnhighlight && indexToRemove > -1) {
+        edgeToUnhighlight.removeClass("euler-path");
+        clone_visited.splice(indexToRemove, 1);
       }
     }
-
-    if (selectedEdge) {
-      visited.push(selectedEdge.id());
-      selectedEdge.addClass("euler-path");
-    }
+    return clone_visited;
   }
 
   // START-RUN ANIMATE
-  const handleRunAnimate = (EC: string[], stepByStep: boolean = false) => {
+  // const handleRunAnimate = (EC: string[], stepByStep: boolean = false) => {
+  //   const cy = cyInstanceRef.current;
+  //   if (!cy || !EC || EC.length === 0) return;
+
+  //   setEulerAnimateStep(0);
+  //   setAnimateIsPause(false);
+  //   setCurrentEulerPath([...EC]);
+  //   setVisitedEdges([]);
+
+  //   cy.elements().removeClass("hasSelected");
+
+  //   let step = 0;
+  //   const path = [...EC];
+  //   const visited: string[] = [];
+
+  //   const executeStep = () => {
+  //     if (step >= path.length - 1) {
+  //       setAnimateInterval(null);
+  //       setAnimateIsPause(true);
+  //       updateIsEndAlgorithm(true);
+
+  //       return;
+  //     }
+
+  //     const currNodeId = path[step];
+  //     const nextNodeId = path[step + 1];
+
+  //     highLightPath(currNodeId, nextNodeId, visited);
+  //     setVisitedEdges([...visited]);
+
+  //     step++;
+  //     setEulerAnimateStep(step);
+
+  //     if (step >= path.length - 1) {
+  //       cy.$id(nextNodeId).addClass("end");
+  //       toast.success("Tìm thấy chu trình Euler");
+
+  //       setAnimateInterval(null);
+  //       setAnimateIsPause(true);
+  //       updateIsEndAlgorithm(true);
+  //       return;
+  //     }
+  //     if (!stepByStep) {
+  //       const interval = setTimeout(executeStep, 1000);
+  //       setAnimateInterval(interval);
+  //     }
+  //   }
+
+  //   executeStep();
+
+  // }
+
+  // test
+  const handleRunAnimate = (stepByStep: boolean = false, scriptStep: stepInfo[]) => {
     const cy = cyInstanceRef.current;
-    if (!cy || !EC || EC.length === 0) return;
+    if (!cy || scriptStep.length === 0) return;
 
     setEulerAnimateStep(0);
     setAnimateIsPause(false);
-    setCurrentEulerPath([...EC]);
     setVisitedEdges([]);
-
     cy.elements().removeClass("hasSelected");
 
-    let step = 0;
-    const path = [...EC];
-    const visited: string[] = [];
+    let stepIndex = 0;
+    const script = [...scriptStep];
+    let localVisited: string[] = [];
 
     const executeStep = () => {
-      if (step >= path.length - 1) {
+      if (stepIndex >= script.length) {
         setAnimateInterval(null);
         setAnimateIsPause(true);
         updateIsEndAlgorithm(true);
 
+        setStartResult(true);
         return;
       }
 
-      const currNodeId = path[step];
-      const nextNodeId = path[step + 1];
+      const currentStepData = script[stepIndex];
+      if (currentStepData.action) {
+        const { from, to, type } = currentStepData.action;
+        localVisited = highLightPath(from, to, localVisited, type);
+        setVisitedEdges(localVisited);
+      }
 
-      highLightPath(currNodeId, nextNodeId, visited);
-      setVisitedEdges([...visited]);
+      stepIndex++;
+      setEulerAnimateStep(stepIndex);
 
-      step++;
-      setEulerAnimateStep(step);
-
-      if (step >= path.length - 1) {
-        cy.$id(nextNodeId).addClass("end");
+      if (stepIndex >= script.length) {
+        if (typeof currentStepData?.action?.to === "string") {
+          cy.$id(currentStepData.action.to).addClass("end");
+        }
         toast.success("Tìm thấy chu trình Euler");
-
-        setAnimateInterval(null);
-        setAnimateIsPause(true);
-        updateIsEndAlgorithm(true);
-        return;
       }
+
       if (!stepByStep) {
         const interval = setTimeout(executeStep, 1000);
         setAnimateInterval(interval);
@@ -100,8 +181,8 @@ export const useRunGraphAlgorithm = (
     }
 
     executeStep();
-
   }
+  // test
   // END-RUN ANIMATE
 
 
@@ -214,20 +295,62 @@ export const useRunGraphAlgorithm = (
 
     const needUpdateStart = !startNodeRef.current
     // MAIN
-    const result = findEulerPath(selectAlgorithm);
-    if (result.length === 0 && suggestMess !== "") return;
+    const { step, eulerCycle } = findEulerPath(selectAlgorithm);
+    if (eulerCycle.length === 0 && suggestMess !== "") return;
 
+    setResult(eulerCycle);
+    setStartResult(false);
     // udpate start node if dont select start node before run algorithm
     if (needUpdateStart && startNodeRef.current) {
       handleChangeStart(startNodeRef.current.data("label"));
     }
     // RUN ANIMATE
-    handleRunAnimate(result, stepByStep);
+
+    // Custom StepScript
+    let indexStepCustom = 1;
+    const configStep: stepInfo[] = step.reduce((acc, item) => {
+      if (item.action != null) {
+        acc.push({
+          step: indexStepCustom++,
+          action: { ...item.action },
+        });
+      }
+      return acc;
+    }, [] as stepInfo[]);
+
+    console.log("Check :", configStep);
+
+    if (configStep && configStep.length === 0) return;
+
+    setAnimationScript(configStep);
+    handleRunAnimate(stepByStep, configStep);
+    // test
   }
 
-  // useEffect(() => {
-  //   console.log("My check toggle")
-  // }, [animateIsPause]);
+  useEffect(() => {
+    const cy = cyInstanceRef.current
+    if (startReult && result && cy) {
+      cy.elements().removeClass("euler-path end");
+
+      setEulerAnimateStep(0);
+      updateIsEndAlgorithm(false);
+      setCurrentEulerPath([]);
+      setVisitedEdges([]);
+
+      const customResult: stepInfo[] = [];
+      for (let i = 0; i < result.length - 1; i++) {
+        const curr = result[i];
+        const next = result[i + 1];
+        customResult.push({
+          step: i + 1,
+          action: { type: "traverse", from: curr, to: next },
+        })
+      }
+      setTimeout(() => {
+        handleRunAnimate(false, customResult);
+      }, 1000);
+    }
+  }, [startReult, result]);
 
   return {
     animateIsPause,

@@ -93,14 +93,19 @@ export const useAlgorithm = (
     return true;
   }
 
-  const findEulerPath = (type: string): string[] => {
+  interface EulerResult {
+    step: stepInfo[];
+    eulerCycle: string[];
+  }
+
+  const findEulerPath = (type: string): EulerResult => {
     const cy = cyInstanceRef.current;
-    if (!cy) return [];
+    if (!cy) return { step: [], eulerCycle: [] };
 
     const steps: stepInfo[] = [];
     const stepsCounter = { count: 1 };
 
-    if (!ValidateGraph()) return [];
+    if (!ValidateGraph()) return { step: [], eulerCycle: [] };
 
     steps.push({
       step: stepsCounter.count++,
@@ -133,7 +138,7 @@ export const useAlgorithm = (
     }
     if (!start) {
       toast.warning("Vui lòng chọn đỉnh bắt đầu!")
-      return [];
+      return { step: [], eulerCycle: [] };
     } else {
       steps.push({
         step: stepsCounter.count++,
@@ -141,18 +146,28 @@ export const useAlgorithm = (
       });
     }
 
-    let EC: string[] = [];
+    // let EC: string[] = [];
+
+    let result: EulerResult = { step: [], eulerCycle: [] };
 
     if (type === ALGORITHM_SELECT.HIERHOLZER) {
       const { step, eulerCycle } = Algorithm.Hierholzer(cyInstanceRef, start, adjList, isDirectedGraph);
       updateResult({ eulerCycle: eulerCycle, stepInfo: step });
-      EC = eulerCycle;
+      // EC = eulerCycle;
+
+      result = { step: step, eulerCycle: eulerCycle };
     } else if (type === ALGORITHM_SELECT.FLEURY) {
       const { step, eulerCycle } = Algorithm.Fleury(cyInstanceRef, start, adjList, isDirectedGraph);
       updateResult({ eulerCycle: eulerCycle, stepInfo: step });
-      EC = eulerCycle;
+      // EC = eulerCycle;
+
+      result = { step: step, eulerCycle: eulerCycle };
     }
-    return EC;
+    // return EC;
+
+    // test
+    return { ...result };
+    // test
   }
 
   const handleChangeStart = (value: string) => {

@@ -50,9 +50,9 @@ class AlgorithmEuler {
 
     const steps: stepInfo[] = [];
     const stepsCounter = { count: 1 };
-
     const eulerCycle: string[] = [];
     const stack: string[] = [start];
+
     steps.push({
       step: stepsCounter.count++,
       description: `Khởi tạo thuật toán Hierholzer. Thêm đỉnh bắt đầu ${cy.$id(start).data("label")} vào stack`,
@@ -68,7 +68,7 @@ class AlgorithmEuler {
         description: `Lấy đỉnh đầu của stack. Xét đỉnh ${cy.$id(curr).data("label")}`,
         eulerCycle: [...eulerCycle],
         stack: [...stack],
-      })
+      });
 
       if (adjList[curr].length > 0) {
         const next = adjList[curr].shift();
@@ -83,6 +83,9 @@ class AlgorithmEuler {
           description: `Duyệt cạnh kề của ${cy.$id(curr).data("label")}. Đi theo cạnh ('${cy.$id(curr).data("label")}' --> '${cy.$id(next!).data("label")}'), xóa cạnh này và thêm ${cy.$id(next!).data("label")} vào stack.`,
           eulerCycle: [...eulerCycle],
           stack: [...stack],
+          // ================== TEST ==================
+          action: { type: 'traverse', from: curr, to: next! }
+          // ===================================================
         })
       } else {
         eulerCycle.push(stack.pop()!)
@@ -101,6 +104,7 @@ class AlgorithmEuler {
     };
   }
 
+  // =============================================== FLEURY ===============================================
   static Fleury = (cyInstanceRef: React.RefObject<Core | null>, start: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean): AlgorithmDataRunning => {
     const cy = cyInstanceRef.current;
     if (!cy) return {
@@ -138,6 +142,13 @@ class AlgorithmEuler {
 
       let next = null;
       for (const v of adjList[curr]) {
+        steps.push({
+          step: stepsCounter.count++,
+          description: `Kiểm tra cạnh ('${cy.$id(curr).data("label")}' -> '${cy.$id(v).data("label")}')...`,
+          eulerCycle: [...eulerCycle],
+          action: { type: 'traverse', from: curr, to: v }
+        });
+
         if (!isBridge(curr, v, adjList, isDirectedGraph)) {
           steps.push({
             step: stepsCounter.count++,
@@ -146,6 +157,13 @@ class AlgorithmEuler {
           });
           next = v;
           break;
+        } else {
+          steps.push({
+            step: stepsCounter.count++,
+            description: `Cạnh này là cạnh cầu. Bỏ qua và xét cạnh khác.`,
+            eulerCycle: [...eulerCycle],
+            action: { type: 'unhighlight', from: curr, to: v }
+          });
         }
       }
 
@@ -155,6 +173,7 @@ class AlgorithmEuler {
           step: stepsCounter.count++,
           description: `Không tìm thấy cạnh không phải cạnh cầu. Chọn cạnh cầu đầu tiên ('${cy.$id(curr).data("label")}' --> '${cy.$id(next).data("label")}')`,
           eulerCycle: [...eulerCycle],
+          action: { type: 'traverse', from: curr, to: next }
         });
       }
 

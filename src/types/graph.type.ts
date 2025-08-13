@@ -77,12 +77,38 @@ export interface MouseEventObject extends EventObject {
   cyPosition?: { x: number; y: number };
 }
 
-// New 
+// New
+// export interface stepInfo {
+//   step: number;
+//   description: string;
+//   eulerCycle?: string[];
+//   stack?: string[];
+// }
+
+// export interface AlgorithmDataRunning {
+//   step: stepInfo[];
+//   eulerCycle: string[];
+// }
+
+// export interface AlgorithmResult {
+//   eulerCycle?: string[],
+//   stepInfo?: stepInfo[],
+//   errMess?: string,
+//   sugMess?: string,
+//   isCycle?: boolean,
+// }
+
+// test
+type GraphAction =
+  | { type: 'traverse'; from: string; to: string } // Thêm màu cho cạnh
+  | { type: 'unhighlight'; from: string; to: string };
 export interface stepInfo {
   step: number;
-  description: string;
+  description?: string;
   eulerCycle?: string[];
   stack?: string[];
+
+  action?: GraphAction
 }
 
 export interface AlgorithmDataRunning {
