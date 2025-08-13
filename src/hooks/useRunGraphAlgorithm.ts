@@ -137,6 +137,42 @@ export const useRunGraphAlgorithm = (
     }
   }
 
+  const prevStep = () => {
+    const cy = cyInstanceRef.current;
+    if (!cy || currentEulerPath.length === 0 || eulerAnimateStep <= 0) return;
+
+    // Remove highlight from current step
+    const currNodeId = currentEulerPath[eulerAnimateStep - 1];
+    const nextNodeId = currentEulerPath[eulerAnimateStep];
+
+    // Remove last visited edge
+    const newVisited = [...visitedEdges];
+    newVisited.pop();
+    setVisitedEdges(newVisited);
+
+    // Remove highlighting from edges
+    if (!isDirectedGraph) {
+      cy.edges(`[source="${currNodeId}"][target="${nextNodeId}"], [source="${nextNodeId}"][target="${currNodeId}"]`)
+        .removeClass("euler-path");
+    } else {
+      cy.edges(`[source="${currNodeId}"][target="${nextNodeId}"]`)
+        .removeClass("euler-path");
+    }
+
+    // Remove end node highlighting if we're moving back from last step
+    if (eulerAnimateStep === currentEulerPath.length - 1) {
+      cy.$id(nextNodeId).removeClass("end");
+    }
+
+    // Update step counter
+    setEulerAnimateStep(eulerAnimateStep - 1);
+
+    // Reset end algorithm status if we're moving back from last step
+    if (eulerAnimateStep === currentEulerPath.length - 1) {
+      updateIsEndAlgorithm(false);
+    }
+  }
+
   const resetAnimation = () => {
     const cy = cyInstanceRef.current;
     if (!cy) return;
@@ -156,7 +192,7 @@ export const useRunGraphAlgorithm = (
     setVisitedEdges([]);
 
     // RESET DATA RESULT
-    updateResult({ eulerCycle: [], stepInfo: [], sugMess: "", errMess: "" });
+    updateResult({ eulerCycle: [], stepInfo: [], sugMess: "", errMess: "", isCycle: true });
     handleChangeStart("");
     startNodeRef.current = null;
   }
@@ -199,6 +235,7 @@ export const useRunGraphAlgorithm = (
 
     handleRunAnimate,
     nextStep,
+    prevStep,
     resetAnimation,
   }
 

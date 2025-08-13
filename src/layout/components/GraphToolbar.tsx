@@ -7,7 +7,7 @@ import { useGraphStore } from "../../store/useGraphStore";
 import { GraphService } from "../../services/graphService";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Eraser, FileDown, FileUp, Fullscreen, Pause, PencilRuler, Play, RotateCcw, Scaling, Shrink, SkipForward, Trash2, ZoomIn, ZoomOut } from "lucide-react";
+import { Eraser, FileDown, FileUp, Fullscreen, Pause, PencilRuler, Play, RotateCcw, Scaling, Shrink, SkipBack, SkipForward, Trash2, ZoomIn, ZoomOut } from "lucide-react";
 import { useGraphStatusStore } from "../../store/useGraphStatusStore";
 import { Input } from "../../components/ui/input";
 import { Switch } from "../../components/ui/switch";
@@ -29,6 +29,7 @@ interface GraphToolbarProps {
 
   onToggleDirected: (type?: boolean) => void,
   nextStep: () => void,
+  prevStep: () => void,
   resetAnimation: () => void,
   handlePlayAlgorithm: (stepByStep: boolean) => void,
   handleChangeStart: (value: string) => void
@@ -41,6 +42,7 @@ const GraphToolbar = ({
   animateIsPause,
   onToggleDirected,
   nextStep,
+  prevStep,
   resetAnimation,
   handlePlayAlgorithm,
   handleChangeStart,
@@ -490,6 +492,7 @@ const GraphToolbar = ({
                 </Tooltip>
               </TooltipProvider>
 
+              <Button variant={"outline"} size={"icon"} onClick={prevStep}><SkipBack /></Button>
               <Button variant={"outline"} size={"icon"} onClick={nextStep}><SkipForward /></Button>
               <TooltipProvider delayDuration={50}>
                 <Tooltip>

@@ -19,11 +19,11 @@ const CreateNodeDialog = ({ isOpen, labelNode, toggleDialog, onLableChange, hand
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Create New Node</DialogTitle>
+          <DialogTitle>Tạo đỉnh mới</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="node-label-input" className="text-right"> Label </Label>
+            <Label htmlFor="node-label-input" className="text-right"> Tên đỉnh </Label>
             <Input
               id="node-label-input"
               value={labelNode}
@@ -39,7 +39,7 @@ const CreateNodeDialog = ({ isOpen, labelNode, toggleDialog, onLableChange, hand
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleCreateNewNode}>Add Node</Button>
+          <Button onClick={handleCreateNewNode}>Tạo đỉnh</Button>
         </DialogFooter>
       </DialogContent>
 

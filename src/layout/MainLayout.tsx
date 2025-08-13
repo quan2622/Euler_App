@@ -31,7 +31,7 @@ const MainLayout = () => {
   // console.groupEnd();
 
   const { handleChangeStart } = useAlgorithm(cyInstance, startNodeRef, isDirectedGraph);
-  const { animateIsPause, handlePlayAlgorithm, nextStep, resetAnimation } = useRunGraphAlgorithm(cyInstance, startNodeRef, isDirectedGraph);
+  const { animateIsPause, handlePlayAlgorithm, nextStep, prevStep, resetAnimation } = useRunGraphAlgorithm(cyInstance, startNodeRef, isDirectedGraph);
 
   // const { isEndAlgorithm } = useGraphStatusStore();
 
@@ -48,6 +48,7 @@ const MainLayout = () => {
               isDirectedGraph={isDirectedGraph}
               onToggleDirected={onToggleDirected}
               nextStep={nextStep}
+              prevStep={prevStep}
               resetAnimation={resetAnimation}
               handlePlayAlgorithm={handlePlayAlgorithm}
               animateIsPause={animateIsPause}
