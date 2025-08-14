@@ -1,43 +1,43 @@
 import type { Core } from "cytoscape";
 import type { AlgorithmDataRunning, stepInfo } from "../types/graph.type";
 
-const counNodeWithDFS = (start: string, adjList: { [key: string]: string[] }, visited: Map<string, boolean>): number => {
-  visited.set(start, true);
-  let count = 1;
-
-  for (const neighbor of adjList[start] || []) {
-    if (!visited.get(neighbor)) {
-      count += counNodeWithDFS(neighbor, adjList, visited);
-    }
-  }
-  return count;
-}
-
-const isBridge = (u: string, v: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean): boolean => {
-  if (adjList[u].length === 1) {
-    return false;
-  }
+const isBridge = (u: string, v: string, adjList: { [key: string]: string[] }, isDerectedGraph: boolean) => {
 
   const adjList_clone = Object.fromEntries(
     Object.entries(adjList).map(([k, v]) => [k, [...v]])
   );
 
-  const visited_before = new Map<string, boolean>();
-  Object.keys(adjList).forEach(key => visited_before.set(key, false));
-  const count_before = counNodeWithDFS(u, adjList, visited_before);
-
-  let index = adjList_clone[u].indexOf(v);
-  adjList_clone[u].splice(index, 1);
-  if (!isDirectedGraph) {
-    index = adjList_clone[v].indexOf(u);
-    adjList_clone[v].splice(index, 1);
+  if (adjList_clone[u]) {
+    adjList_clone[u] = adjList_clone[u].filter((neighbor: string) => neighbor !== v);
   }
 
-  const visited_after = new Map<string, boolean>();
-  Object.keys(adjList_clone).forEach(key => visited_after.set(key, false));
-  const count_after = counNodeWithDFS(u, adjList_clone, visited_after);
+  if (!isDerectedGraph) {
+    if (adjList_clone[v]) {
+      adjList_clone[v] = adjList_clone[v].filter((neighbor: string) => neighbor !== u);
+    }
+  }
 
-  return count_after < count_before;
+  const dfs = (currentNode: string, visited: Set<string>) => {
+    if (currentNode === u) {
+      return true;
+    }
+    visited.add(currentNode);
+
+    const neighbors = adjList_clone[currentNode] || [];
+    for (const neighbor of neighbors) {
+      if (!visited.has(neighbor)) {
+        if (dfs(neighbor, visited)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  };
+
+  const canReturn = dfs(v, new Set());
+
+  return !canReturn;
 }
 
 class AlgorithmEuler {
@@ -140,55 +140,67 @@ class AlgorithmEuler {
         break;
       }
 
+      const neighbors = adjList[curr];
       let next = null;
-      for (const v of adjList[curr]) {
+      if (neighbors && neighbors.length === 1) {
+        next = neighbors[0];
         steps.push({
           step: stepsCounter.count++,
-          description: `Kiểm tra cạnh ('${cy.$id(curr).data("label")}' -> '${cy.$id(v).data("label")}')...`,
-          eulerCycle: [...eulerCycle],
-          action: { type: 'traverse', from: curr, to: v }
-        });
-
-        if (!isBridge(curr, v, adjList, isDirectedGraph)) {
-          steps.push({
-            step: stepsCounter.count++,
-            description: `Chọn cạnh ('${cy.$id(curr).data("label")}' --> '${cy.$id(v).data("label")}'): Không phải cạnh cầu`,
-            eulerCycle: [...eulerCycle],
-          });
-          next = v;
-          break;
-        } else {
-          steps.push({
-            step: stepsCounter.count++,
-            description: `Cạnh này là cạnh cầu. Bỏ qua và xét cạnh khác.`,
-            eulerCycle: [...eulerCycle],
-            action: { type: 'unhighlight', from: curr, to: v }
-          });
-        }
-      }
-
-      if (!next) {
-        next = adjList[curr][0];
-        steps.push({
-          step: stepsCounter.count++,
-          description: `Không tìm thấy cạnh không phải cạnh cầu. Chọn cạnh cầu đầu tiên ('${cy.$id(curr).data("label")}' --> '${cy.$id(next).data("label")}')`,
+          description: `Chỉ có một lối ra duy nhất ('${cy.$id(curr).data("label")}' -> '${cy.$id(next).data("label")}'). Bắt buộc đi theo cạnh này.`,
           eulerCycle: [...eulerCycle],
           action: { type: 'traverse', from: curr, to: next }
         });
+      } else {
+        for (const v of adjList[curr]) {
+          steps.push({
+            step: stepsCounter.count++,
+            description: `Kiểm tra cạnh ('${cy.$id(curr).data("label")}' -> '${cy.$id(v).data("label")}') có phải là cạnh cầu không ?`,
+            eulerCycle: [...eulerCycle],
+            action: { type: 'traverse', from: curr, to: v }
+          });
+
+          if (!isBridge(curr, v, adjList, isDirectedGraph)) {
+            steps.push({
+              step: stepsCounter.count++,
+              description: `Chọn cạnh ('${cy.$id(curr).data("label")}' --> '${cy.$id(v).data("label")}'): Không phải cạnh cầu`,
+              eulerCycle: [...eulerCycle],
+            });
+            next = v;
+            break;
+          } else {
+            steps.push({
+              step: stepsCounter.count++,
+              description: `Cạnh này là cạnh cầu. Bỏ qua và xét cạnh khác.`,
+              eulerCycle: [...eulerCycle],
+              action: { type: 'unhighlight', from: curr, to: v }
+            });
+          }
+        }
+        // if (!next) {
+        //   next = adjList[curr][0];
+        //   steps.push({
+        //     step: stepsCounter.count++,
+        //     description: `Không tìm thấy cạnh không phải là cạnh cầu. Chọn cạnh cầu đầu tiên ('${cy.$id(curr).data("label")} !' --> '${cy.$id(next).data("label")}')`,
+        //     eulerCycle: [...eulerCycle],
+        //     action: { type: 'traverse', from: curr, to: next }
+        //   });
+        // }
       }
 
-      let index = adjList[curr].indexOf(next);
-      adjList[curr].splice(index, 1);
-      if (!isDirectedGraph) {
-        index = adjList[next].indexOf(curr);
-        adjList[next].splice(index, 1);
+      if (next) {
+        let index = adjList[curr].indexOf(next);
+        adjList[curr].splice(index, 1);
+        if (!isDirectedGraph) {
+          index = adjList[next].indexOf(curr);
+          adjList[next].splice(index, 1);
+        }
+        steps.push({
+          step: stepsCounter.count++,
+          description: `Xóa cạnh ('${cy.$id(curr).data("label")}' --> '${cy.$id(next).data("label")}')`,
+          eulerCycle: [...eulerCycle],
+        });
+        curr = next;
       }
-      steps.push({
-        step: stepsCounter.count++,
-        description: `Xóa cạnh ('${cy.$id(curr).data("label")}' --> '${cy.$id(next).data("label")}')`,
-        eulerCycle: [...eulerCycle],
-      });
-      curr = next;
     }
 
     return {
