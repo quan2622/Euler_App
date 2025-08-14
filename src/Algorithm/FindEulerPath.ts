@@ -41,7 +41,7 @@ const isBridge = (u: string, v: string, adjList: { [key: string]: string[] }, is
 }
 
 class AlgorithmEuler {
-  static Hierholzer = (cyInstanceRef: React.RefObject<Core | null>, start: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean): AlgorithmDataRunning => {
+  static Hierholzer = (cyInstanceRef: React.RefObject<Core | null>, start: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean, currentStep: number): AlgorithmDataRunning => {
     const cy = cyInstanceRef.current;
     if (!cy) return {
       step: [],
@@ -49,7 +49,7 @@ class AlgorithmEuler {
     };
 
     const steps: stepInfo[] = [];
-    const stepsCounter = { count: 1 };
+    const stepsCounter = { count: currentStep };
     const eulerCycle: string[] = [];
     const stack: string[] = [start];
 
@@ -105,7 +105,7 @@ class AlgorithmEuler {
   }
 
   // =============================================== FLEURY ===============================================
-  static Fleury = (cyInstanceRef: React.RefObject<Core | null>, start: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean): AlgorithmDataRunning => {
+  static Fleury = (cyInstanceRef: React.RefObject<Core | null>, start: string, adjList: { [key: string]: string[] }, isDirectedGraph: boolean, currentStep: number): AlgorithmDataRunning => {
     const cy = cyInstanceRef.current;
     if (!cy) return {
       step: [],
@@ -113,7 +113,7 @@ class AlgorithmEuler {
     };
 
     const steps: stepInfo[] = [];
-    const stepsCounter = { count: 1 };
+    const stepsCounter = { count: currentStep };
     const eulerCycle: string[] = [];
     let curr = start;
 

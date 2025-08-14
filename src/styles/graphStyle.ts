@@ -53,7 +53,15 @@ export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
     css: {
       "line-color": "#FF6B9D",
       "target-arrow-color": "#FF6B9D",
-      width: 3,
+      width: 2,
+    },
+  },
+  {
+    selector: "edge.AL-path",
+    css: {
+      "line-color": "#00bba7",
+      "target-arrow-color": "#00bba7",
+      width: 2,
     },
   },
 

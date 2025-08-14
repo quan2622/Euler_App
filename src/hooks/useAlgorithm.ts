@@ -15,8 +15,13 @@ export const useAlgorithm = (
   const { selectedElements, handleSetStartNode, updateOddNode, updateSuggestMess } = useGraphStore();
 
 
-  const ValidateGraph = (): boolean => {
+  const ValidateGraph = (steps: stepInfo[], stepsCounter: { count: number }): boolean => {
     // Start - Check interconnect component
+    steps.push({
+      step: stepsCounter.count++,
+      description: "Kiểm tra thành phần liên thông",
+    });
+
     const numberOfComponent = interconnects.length;
 
     let flag = 0;
@@ -31,16 +36,39 @@ export const useAlgorithm = (
       }
       if (flag > 1) {
         toast.error("Các đỉnh có bậc >= 0 không thuộc cùng 1 thành phần liên thông");
-        updateResult({ errMess: "Các đỉnh có bậc >= 0 không thuộc cùng 1 thành phần liên thông" })
+        updateResult({ errMess: "Các đỉnh có bậc >= 0 không thuộc cùng 1 thành phần liên thông" });
+        steps.push({
+          step: stepsCounter.count++,
+          description: "Thành phần liên thông không hợp lệ",
+        });
         return false;
       }
     }
+
+    steps.push({
+      step: stepsCounter.count++,
+      description: "Thành phần liên thông hợp lệ",
+    });
     // End - Check interconnect component
 
     // Start - Check even node degree
+    steps.push({
+      step: stepsCounter.count++,
+      description: "Kiểm tra bậc của các đỉnh",
+    });
+
     if (!checkEvenDegree()) {
+      steps.push({
+        step: stepsCounter.count++,
+        description: "Bậc của các đỉnh không hợp lệ",
+      });
       return false;
     }
+
+    steps.push({
+      step: stepsCounter.count++,
+      description: "Bậc của các đỉnh hợp lệ",
+    });
     // End - Check even node degree
 
     return true;
@@ -105,11 +133,29 @@ export const useAlgorithm = (
     const steps: stepInfo[] = [];
     const stepsCounter = { count: 1 };
 
-    if (!ValidateGraph()) return { step: [], eulerCycle: [] };
+    // Step 1: Validate Graph
+    steps.push({
+      step: stepsCounter.count++,
+      description: "Kiểm tra thông tin đồ thị",
+    });
+
+    if (!ValidateGraph(steps, stepsCounter)) {
+      steps.push({
+        step: stepsCounter.count++,
+        description: "Thông tin đồ thị không hợp lệ",
+      });
+      return { step: steps, eulerCycle: [] };
+    }
 
     steps.push({
       step: stepsCounter.count++,
-      description: `Kiểm tra thông tin đồ thị: ✓`,
+      description: "Thông tin đồ thị hợp lệ",
+    });
+
+    // Step 2: Check start node
+    steps.push({
+      step: stepsCounter.count++,
+      description: "Kiểm tra đỉnh bắt đầu",
     });
 
     const adjList = Object.fromEntries(
@@ -124,7 +170,7 @@ export const useAlgorithm = (
 
           const nodes = cy.nodes();
           nodes.removeClass("start");
-          const startNode = cy.$id(start)
+          const startNode = cy.$id(start);
           startNode.addClass("start");
 
           if (startNode.nonempty() && startNode.isNode()) {
@@ -136,9 +182,14 @@ export const useAlgorithm = (
         }
       }
     }
+
     if (!start) {
-      toast.warning("Vui lòng chọn đỉnh bắt đầu!")
-      return { step: [], eulerCycle: [] };
+      toast.warning("Vui lòng chọn đỉnh bắt đầu!");
+      steps.push({
+        step: stepsCounter.count++,
+        description: "Không có đỉnh bắt đầu hợp lệ",
+      });
+      return { step: steps, eulerCycle: [] };
     } else {
       steps.push({
         step: stepsCounter.count++,
@@ -151,23 +202,23 @@ export const useAlgorithm = (
     let result: EulerResult = { step: [], eulerCycle: [] };
 
     if (type === ALGORITHM_SELECT.HIERHOLZER) {
-      const { step, eulerCycle } = Algorithm.Hierholzer(cyInstanceRef, start, adjList, isDirectedGraph);
-      updateResult({ eulerCycle: eulerCycle, stepInfo: step });
+      const { step, eulerCycle } = Algorithm.Hierholzer(cyInstanceRef, start, adjList, isDirectedGraph, stepsCounter.count);
       // EC = eulerCycle;
 
       result = { step: step, eulerCycle: eulerCycle };
     } else if (type === ALGORITHM_SELECT.FLEURY) {
-      const { step, eulerCycle } = Algorithm.Fleury(cyInstanceRef, start, adjList, isDirectedGraph);
-      updateResult({ eulerCycle: eulerCycle, stepInfo: step });
+      const { step, eulerCycle } = Algorithm.Fleury(cyInstanceRef, start, adjList, isDirectedGraph, stepsCounter.count);
       // EC = eulerCycle;
 
       result = { step: step, eulerCycle: eulerCycle };
     }
-    // return EC;
 
-    // test
-    return { ...result };
-    // test
+    // Merge steps
+    result.step = [...steps, ...result.step];
+    updateResult({ eulerCycle: result.eulerCycle, stepInfo: result.step });
+
+
+    return result;
   }
 
   const handleChangeStart = (value: string) => {
