@@ -103,7 +103,7 @@ type GraphAction =
   | { type: 'traverse'; from: string; to: string } // Thêm màu cho cạnh
   | { type: 'unhighlight'; from: string; to: string };
 export interface stepInfo {
-  step: number;
+  step?: number;
   description?: string;
   eulerCycle?: string[];
   stack?: string[];

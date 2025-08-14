@@ -2,7 +2,7 @@ import type { Core, NodeSingular } from "cytoscape"
 import { useGraphStatusStore } from "../store/useGraphStatusStore"
 import Algorithm from "../Algorithm/FindEulerPath";
 import { toast } from "sonner";
-import { ALGORITHM_SELECT } from "../utils/constant";
+import { ALGORITHM_SELECT, RUN_MODE } from "../utils/constant";
 import { useGraphStore } from "../store/useGraphStore";
 import type { stepInfo } from "../types/graph.type";
 
@@ -11,8 +11,8 @@ export const useAlgorithm = (
   startNodeRef: React.RefObject<NodeSingular | null>,
   isDirectedGraph: boolean,
 ) => {
-  const { adjacencyList, interconnects, nodeDegrees, updateResult } = useGraphStatusStore();
-  const { selectedElements, handleSetStartNode, updateOddNode, updateSuggestMess } = useGraphStore();
+  const { nodeLabels, adjacencyList, interconnects, nodeDegrees, updateResult, updateStepbyStepInfo } = useGraphStatusStore();
+  const { runMode, selectedElements, handleSetStartNode, updateOddNode, updateSuggestMess } = useGraphStore();
 
 
   const ValidateGraph = (steps: stepInfo[], stepsCounter: { count: number }): boolean => {
@@ -39,7 +39,7 @@ export const useAlgorithm = (
         updateResult({ errMess: "Các đỉnh có bậc >= 0 không thuộc cùng 1 thành phần liên thông" });
         steps.push({
           step: stepsCounter.count++,
-          description: "Thành phần liên thông không hợp lệ",
+          description: "Các đỉnh có bậc >= 0 không thuộc cùng 1 thành phần liên thông",
         });
         return false;
       }
@@ -129,6 +129,10 @@ export const useAlgorithm = (
   const findEulerPath = (type: string): EulerResult => {
     const cy = cyInstanceRef.current;
     if (!cy) return { step: [], eulerCycle: [] };
+    if (nodeLabels.length === 0) {
+      toast.warning("Vui lòng nhập thông tin đồ thị trước khi chạy thuật toán");
+      return { step: [], eulerCycle: [] };
+    }
 
     const steps: stepInfo[] = [];
     const stepsCounter = { count: 1 };
@@ -178,22 +182,20 @@ export const useAlgorithm = (
           }
 
           toast.warning(`Tự động chọn đỉnh ${startNode.data("label")} làm đỉnh bắt đầu`);
+
           break;
         }
       }
     }
 
     if (!start) {
-      toast.warning("Vui lòng chọn đỉnh bắt đầu!");
-      steps.push({
-        step: stepsCounter.count++,
-        description: "Không có đỉnh bắt đầu hợp lệ",
-      });
-      return { step: steps, eulerCycle: [] };
+      toast.warning("Vui lòng tạo cạnh và thử lại!");
+      updateResult({ sugMess: `Đồ thị không tôn tại cạnh nối giữa 2 đỉnh với nhau. Vui lòng tạo cạnh và chạy lại thuật toán!` })
+      return { step: [], eulerCycle: [] };
     } else {
       steps.push({
         step: stepsCounter.count++,
-        description: `Đỉnh bắt đầu: ${start}`,
+        description: `Đỉnh bắt đầu: ${cy.$id(start).data("label")}`,
       });
     }
 
@@ -215,8 +217,11 @@ export const useAlgorithm = (
 
     // Merge steps
     result.step = [...steps, ...result.step];
-    updateResult({ eulerCycle: result.eulerCycle, stepInfo: result.step });
+    if (runMode === RUN_MODE.STEP) {
+      updateStepbyStepInfo(result.step[0]);
+    }
 
+    updateResult({ eulerCycle: result.eulerCycle, stepInfo: result.step });
 
     return result;
   }

@@ -21,10 +21,14 @@ type State = {
     sugMess: string,
     isCycle: boolean,
   },
+  displayStepbyStep: stepInfo | null,
+  isStepByStepStart: boolean,
 }
 
 type Action = {
+  updateStatusStepByStep: (value: boolean) => void,
   updateResult: ({ eulerCycle, stepInfo, errMess, sugMess }: AlgorithmResult) => void,
+  updateStepbyStepInfo: (stepInfo: stepInfo | null) => void,
   updateIsEndAlgorithm: (newValue: boolean) => void,
   updateInterConnect: (interconnects: string[][]) => void,
   updateNodeDegree: (sourceId: string, targetId: string, isDerectedGraph: boolean, isAdd?: boolean) => void,
@@ -57,7 +61,16 @@ export const useGraphStatusStore = create<State & Action>((set) => ({
     sugMess: "",
     isCycle: true,
   },
+  displayStepbyStep: null,
+  isStepByStepStart: false,
 
+
+  updateStatusStepByStep: (value) => {
+    set({ isStepByStepStart: value });
+  },
+  updateStepbyStepInfo: (stepInfo: stepInfo | null) => {
+    set({ displayStepbyStep: stepInfo })
+  },
   updateResult: (newResult: Partial<AlgorithmResult>) => {
     set((state) => ({
       result: {

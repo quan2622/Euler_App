@@ -49,7 +49,7 @@ const GraphToolbar = ({
 }: GraphToolbarProps) => {
 
   const { runMode, selectedElements, handleResetSelectedElement, updateRunMode, updateLayoutGraph } = useGraphStore();
-  const { result, updateResult, updateNodeDegree, handleResetStatus, handleLoadStatusFormFile, nodeDegrees } = useGraphStatusStore();
+  const { isStepByStepStart, isEndAlgorithm, displayStepbyStep, result, updateResult, updateNodeDegree, handleResetStatus, handleLoadStatusFormFile, nodeDegrees } = useGraphStatusStore();
   const [currentLayout, setCurrentLayout] = useState("grid");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isOpenDialog, setIsOpenDialog] = useState(false);
@@ -492,8 +492,8 @@ const GraphToolbar = ({
                 </Tooltip>
               </TooltipProvider>
 
-              <Button variant={"outline"} size={"icon"} onClick={prevStep}><SkipBack /></Button>
-              <Button variant={"outline"} size={"icon"} onClick={nextStep}><SkipForward /></Button>
+              <Button variant={"outline"} size={"icon"} onClick={prevStep} disabled={!isStepByStepStart}><SkipBack /></Button>
+              <Button variant={"outline"} size={"icon"} onClick={nextStep} disabled={!isStepByStepStart}><SkipForward /></Button>
               <TooltipProvider delayDuration={50}>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -540,7 +540,7 @@ const GraphToolbar = ({
             <div className="whitespace-nowrap font-semibold italic">Output:</div>
             <div className="relative group">
               <ScrollArea className="h-[125px] rounded-md border border-zinc-400/30 p-2 bg-white">
-                {result && result.eulerCycle.length > 0 && result.stepInfo.length > 0 &&
+                {isEndAlgorithm && result && result.eulerCycle.length > 0 && result.stepInfo.length > 0 &&
                   <div className="flex flex-col text-xs">
                     <div className="pb-1 mb-1 border-b-2 border-dashed border-zinc-400">
                       <div className="font-bold italic">
@@ -595,6 +595,35 @@ const GraphToolbar = ({
                     {result.sugMess !== "" &&
                       <span className="text-orange-500">{result.sugMess}</span>
                     }
+                  </div>
+                }
+
+                {!isEndAlgorithm && displayStepbyStep &&
+                  <div className="flex flex-col text-xs">
+                    <div className="space-y-1">
+                      <p className="font-semibold italic">Các bước thực hiện: </p>
+                      <div>
+                        <div className="space-x-1">
+                          <span className="font-medium">&nbsp;&nbsp; - &nbsp;Bước {displayStepbyStep.step}:</span>
+                          <span>{displayStepbyStep.description}</span>
+
+                        </div>
+                        <div className="pl-[67px] space-x-1">
+                          {displayStepbyStep.stack &&
+                            <span>
+                              <span className="text-blue-500">Stack:</span>
+                              {displayStepbyStep.stack.length > 0 ? ` [ ${displayStepbyStep.stack.map(item => cyInstance.current?.$id(item).data("label")).join(", ")} ]` : " []"}
+                            </span>
+                          }
+                          {displayStepbyStep.eulerCycle &&
+                            <span>
+                              <span className="text-green-500">EC:</span>
+                              {displayStepbyStep.eulerCycle.length > 0 ? ` [ ${displayStepbyStep.eulerCycle.map(item => cyInstance.current?.$id(item).data("label")).join(", ")} ]` : " []"}
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 }
               </ScrollArea>
