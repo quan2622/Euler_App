@@ -31,7 +31,7 @@ export const useRunGraphAlgorithm = (
   const highLightPath = (currNodeId: string, nextNodeId: string, visited: string[], type: "traverse" | "unhighlight"): string[] => {
     const cy = cyInstanceRef.current;
     if (!cy) return visited;
-
+    console.log("Check hightlight: ", currNodeId, nextNodeId, " - ", type);
     const clone_visited = [...visited];
 
     let selectedEdge: EdgeSingular | null = null;
@@ -188,29 +188,29 @@ export const useRunGraphAlgorithm = (
 
   const nextStep = () => {
     const cy = cyInstanceRef.current;
-    if (!cy || currentEulerPath.length === 0) return;
+    if (!cy) return;
 
-    const path = [...currentEulerPath];
-    const visited: string[] = [...visitedEdges];
+    let visited: string[] = [...visitedEdges];
 
     const currStep = eulerAnimateStep;
-    if (currStep >= path.length - 1) {
+    if (currStep >= animationScript.length) {
       toast.info("Đã hoàn thành tất cả các bước");
       updateIsEndAlgorithm(true);
-
       return;
     }
 
-    const currNodeId = path[currStep];
-    const nextNodeId = path[currStep + 1];
-    highLightPath(currNodeId, nextNodeId, visited);
+    const currNodeId = animationScript[currStep].action?.from;
+    const nextNodeId = animationScript[currStep].action?.to;
+    const type = animationScript[currStep].action?.type;
+
+    visited = highLightPath(currNodeId!, nextNodeId!, visited, type!);
     setVisitedEdges(visited);
 
     const newStep = currStep + 1;
     setEulerAnimateStep(newStep);
 
-    if (newStep >= path.length - 1) {
-      cy.$id(nextNodeId).addClass("end");
+    if (newStep >= animationScript.length) {
+      cy.$id(nextNodeId!).addClass("end");
       toast.success("Tìm thấy chu trình Euler");
       setAnimateIsPause(true);
       updateIsEndAlgorithm(true);
@@ -220,36 +220,26 @@ export const useRunGraphAlgorithm = (
 
   const prevStep = () => {
     const cy = cyInstanceRef.current;
-    if (!cy || currentEulerPath.length === 0 || eulerAnimateStep <= 0) return;
-
+    if (!cy || animationScript.length === 0 || eulerAnimateStep <= 0) return;
     // Remove highlight from current step
-    const currNodeId = currentEulerPath[eulerAnimateStep - 1];
-    const nextNodeId = currentEulerPath[eulerAnimateStep];
+    let visited: string[] = [...visitedEdges];
+    const prevStep = eulerAnimateStep - 1;
+    const currNodeId = animationScript[prevStep].action?.from;
+    const nextNodeId = animationScript[prevStep].action?.to;
 
-    // Remove last visited edge
-    const newVisited = [...visitedEdges];
-    newVisited.pop();
-    setVisitedEdges(newVisited);
+    visited = highLightPath(currNodeId!, nextNodeId!, visited, "unhighlight");
 
-    // Remove highlighting from edges
-    if (!isDirectedGraph) {
-      cy.edges(`[source="${currNodeId}"][target="${nextNodeId}"], [source="${nextNodeId}"][target="${currNodeId}"]`)
-        .removeClass("euler-path");
-    } else {
-      cy.edges(`[source="${currNodeId}"][target="${nextNodeId}"]`)
-        .removeClass("euler-path");
+    setEulerAnimateStep(prevStep);
+    setVisitedEdges(visited);
+
+    // // Remove end node highlighting if we're moving back from last step
+    if (eulerAnimateStep === animationScript.length) {
+      console.log("Check remove end");
+      cy.$id(nextNodeId!).removeClass("end");
     }
-
-    // Remove end node highlighting if we're moving back from last step
-    if (eulerAnimateStep === currentEulerPath.length - 1) {
-      cy.$id(nextNodeId).removeClass("end");
-    }
-
-    // Update step counter
-    setEulerAnimateStep(eulerAnimateStep - 1);
 
     // Reset end algorithm status if we're moving back from last step
-    if (eulerAnimateStep === currentEulerPath.length - 1) {
+    if (eulerAnimateStep === currentEulerPath.length) {
       updateIsEndAlgorithm(false);
     }
   }
