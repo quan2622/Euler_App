@@ -49,7 +49,7 @@ const useGraphImportExport = ({
 
     const jsonString = JSON.stringify(graphData, null, 2);
 
-    const blob = new Blob([jsonString], { type: "application/json" });
+    const blob = new Blob([jsonString], { type: "application/json" }); //gắn loại MIME -> file JSON
 
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

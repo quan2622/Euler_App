@@ -129,7 +129,7 @@ export const useRunGraphAlgorithm = (
         }
 
         if (!isDisplay) {
-          toast.success("Tìm thấy chu trình Euler");
+          toast.success("Duyệt đồ thị hoàn tất");
         }
       }
 

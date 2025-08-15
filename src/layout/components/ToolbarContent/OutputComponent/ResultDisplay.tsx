@@ -13,7 +13,10 @@ const ResultDisplay = ({ cyInstance, scrollHeight }: ResultDisplayProps) => {
   const { isEndAlgorithm, result, displayStepbyStep } = useGraphStatusStore();
 
   return (
-    <ScrollArea className={clsx(`h-[${scrollHeight}px]`, "rounded-md border border-zinc-400/30 p-2 bg-white")}>
+    <ScrollArea
+      style={{ height: `${scrollHeight}px` }}
+      className={clsx("rounded-md border border-zinc-400/30 p-2 bg-white")}
+    >
       {isEndAlgorithm && result && result.eulerCycle.length > 0 && result.stepInfo.length > 0 &&
         <div className="flex flex-col text-xs">
           <div className="pb-1 mb-1 border-b-2 border-dashed border-zinc-400">
