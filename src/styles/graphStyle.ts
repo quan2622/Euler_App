@@ -1,14 +1,15 @@
 import type { StylesheetCSS } from "cytoscape";
 
 export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
+  // NODE STYLE
   {
     selector: "node",
     css: {
-      "background-color": "#3B82F6", // Màu nền xanh
-      label: "data(label)", // Hiển thị label từ data
-      color: "#FFFFFF", // Màu chữ trắng
-      "text-valign": "center", // Căn giữa theo chiều dọc
-      "text-halign": "center", // Căn giữa theo chiều ngang
+      "background-color": "#3B82F6",
+      label: "data(label)",
+      color: "#FFFFFF",
+      "text-valign": "center",
+      "text-halign": "center",
       "font-size": 12,
       "font-weight": "bold",
       width: 40,
@@ -17,22 +18,22 @@ export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
       "border-color": "#1E40AF",
       "text-outline-width": 1,
       "text-outline-color": "#1E40AF",
-      shape: "ellipse", // Hình tròn
+      shape: "ellipse",
     },
   },
 
-  // Style cho edges
+  // EDGES STYLE
   {
     selector: "edge",
     css: {
       "line-color": "#6B7280",
       "target-arrow-color": "#6B7280",
-      // Hiển thị mũi tên nếu là directed graph
       "target-arrow-shape": isDirected ? "triangle" : "none",
       "curve-style": "bezier", // Đường cong
       width: 2,
     },
   },
+  // SELECTED ELEMENT STYLE
   {
     selector: "node.hasSelected",
     css: {
@@ -48,14 +49,20 @@ export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
       width: 3,
     },
   },
+  // SELECTED ELEMENT STYLE
+
+  // EULER PATH STYLE
   {
     selector: "edge.euler-path",
     css: {
-      "line-color": "#FF6B9D",
-      "target-arrow-color": "#FF6B9D",
-      width: 2,
+      "line-color": "#DC2626",
+      "target-arrow-color": "#DC2626",
+      width: 3,
+      "z-index": 10,
     },
   },
+
+  // ALGORITHM PATH STYLE
   {
     selector: "edge.AL-path",
     css: {
@@ -65,19 +72,17 @@ export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
     },
   },
 
-  // Style cho elements được chọn
+  // START NODE STYLE
   {
     selector: "node.start",
     css: {
-      // "background-color": "#EF4444", // Màu đỏ khi được chọn
-      // "line-color": "#EF4444",
-      // "target-arrow-color": "#EF4444",
-      // "border-color": "#FCD34D", // Viền vàng
       "border-width": 3,
       "background-color": "#FFDC00",
       "border-color": "#FF851B",
     },
   },
+
+  // END NODE STYLE
   {
     selector: "node.end",
     css: {
@@ -86,17 +91,7 @@ export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
     },
   },
 
-  // Style cho nodes được highlight khi hover
-  {
-    selector: ".highlighted",
-    css: {
-      "background-color": "#10B981", // Màu xanh lá
-      "border-color": "#059669",
-      "border-width": "3px",
-    },
-  },
-
-  // Style cho node tạm thời khi đang kéo
+  // NODE TEMP STYLE WHILE CREATE NEW EDGE
   {
     selector: ".temp-node",
     css: {
@@ -106,16 +101,16 @@ export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
       width: 1,
       height: 1,
       label: "",
-      events: "no", // Không nhận events
+      events: "no",
     },
   },
 
-  // Style cho edge tạm thời khi đang kéo
+  // EDGE TEMP STYLE WHILE CREATE NEW EDGE
   {
     selector: ".temp-edge",
     css: {
-      "line-color": "#F59E0B", // Màu cam
-      "line-style": "dashed", // Đường đứt nét
+      "line-color": "#F59E0B",
+      "line-style": "dashed",
       "target-arrow-color": "#F59E0B",
       "target-arrow-shape": isDirected ? "triangle" : "none",
       width: 3,
@@ -124,7 +119,7 @@ export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
     },
   },
 
-  // Style cho edge tạm thời khi đang kéo
+  // EDGE TARGET STYLE WHILE CREATE NEW EDGE
   {
     selector: ".temp-edge-target",
     css: {
@@ -135,28 +130,6 @@ export const getCytoscapeStyle = (isDirected: boolean): StylesheetCSS[] => [
       width: 3,
       opacity: 0.7,
       events: "no",
-    },
-  },
-
-  // Style cho Euler path
-  {
-    selector: ".euler-path",
-    css: {
-      "line-color": "#DC2626", // Màu đỏ
-      "target-arrow-color": "#DC2626",
-      width: 4,
-      "z-index": 10,
-    },
-  },
-
-  // Style cho node hiện tại trong Euler path
-  {
-    selector: ".euler-current",
-    css: {
-      "background-color": "#DC2626", // Màu đỏ
-      "border-color": "#FEF3C7",
-      "border-width": 4,
-      "z-index": 10,
     },
   },
 ];
