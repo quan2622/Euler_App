@@ -7,7 +7,7 @@ export const useAnalystis = (
   isDirectedGraph: boolean,
 
 ) => {
-  const { updateInterConnect, updateAnalysis } = useGraphStatusStore();
+  const { updateInterConnect, updateAnalysis, updateNodeDegree } = useGraphStatusStore();
 
   const analyzeGraph = useCallback(() => {
     const cy = cyInstanceRef.current;
@@ -38,6 +38,17 @@ export const useAnalystis = (
       }
     });
 
+    // Thông tin bậc của đỉnh
+    edges.forEach((edge) => {
+      const sourceId = edge.data("source");
+      const targetId = edge.data("target");
+
+      const source = cy.$id(sourceId).data("label");
+      const target = cy.$id(targetId).data("label");
+
+      updateNodeDegree(source, target, isDirectedGraph);
+    });
+
     // Danh sách kề
     const adjacencyList: { [key: string]: string[] } = {};
     nodeIds.map((nodeId) => adjacencyList[nodeId] = []);
@@ -63,7 +74,7 @@ export const useAnalystis = (
     const nodeCounter = nodeLabels.length + 1;
 
     updateAnalysis(adjacencyMatix, adjacencyList, nodeLabels, nodeCounter);
-  }, [isDirectedGraph, updateAnalysis]);
+  }, [isDirectedGraph, updateAnalysis, updateNodeDegree]);
 
   const findInterConnection = useCallback(() => {
     if (!cyInstanceRef.current) return;
@@ -71,13 +82,15 @@ export const useAnalystis = (
     const nodes = cy.nodes();
     const visited = new Set<string>();
     const interconnects: string[][] = [];
-
+    let componentIndex = 0;
 
     const dfs = (nodeId: string, interconnect: string[]) => {
       if (visited.has(nodeId)) return;
 
       visited.add(nodeId);
       const node = cy.$id(nodeId);
+      node.data("component_id", componentIndex); //add component id to color elements in same component
+
       interconnect.push(node.data("label"));
 
       const neightbors = node.neighborhood("node");
@@ -89,16 +102,25 @@ export const useAnalystis = (
       })
     }
 
+    // HANDLE FIND COMPONENT CONNECT
     nodes.forEach((node: NodeSingular) => {
       const nodeId = node.id();
       if (!visited.has(nodeId)) {
         const interconnect: string[] = [];
+
         dfs(nodeId, interconnect);
         if (interconnect.length > 0) {
           interconnects.push(interconnect.sort());
+          componentIndex++;
         }
       }
     })
+
+    // UPDATE COMPONENT ID FOR EDGE
+    cy.edges().forEach((edge: EdgeSingular) => {
+      const sourceNode = edge.source();
+      edge.data("component_id", sourceNode.data("component_id"));
+    });
 
     return interconnects;
   }, []);

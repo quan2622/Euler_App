@@ -9,6 +9,7 @@ interface UseGraphImportExportProps {
   setCurrentLayout: (layout: string) => void;
   onToggleDirected: (type?: boolean) => void;
   handleLoadStatusFormFile: (maxNode: number, maxEdge: number) => void;
+  initDegreeForNode: (nodeId: string) => void;
 }
 
 const useGraphImportExport = ({
@@ -18,6 +19,7 @@ const useGraphImportExport = ({
   setCurrentLayout,
   onToggleDirected,
   handleLoadStatusFormFile,
+  initDegreeForNode,
 }: UseGraphImportExportProps) => {
   const exportGraph = useCallback(() => {
     const cy = cyInstance.current;
@@ -79,7 +81,14 @@ const useGraphImportExport = ({
                 position: node.position || { x: 0, y: 0 },
               });
             });
+
+            // HANDLE INIT NODE DEGREE
+            cy.nodes().forEach((node) => {
+              initDegreeForNode(node.data("label"))
+            });
           }
+
+
 
           if (graphData.edges) {
             graphData.edges.forEach((edge: { data: Record<string, unknown> }) => {

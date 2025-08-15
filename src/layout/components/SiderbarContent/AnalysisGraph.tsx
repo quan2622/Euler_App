@@ -3,19 +3,75 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui
 import { ScrollArea } from "../../../components/ui/scroll-area"
 import { useGraphStatusStore } from "../../../store/useGraphStatusStore"
 import clsx from "clsx"
+import { Button } from "../../../components/ui/button"
+import type { Core } from "cytoscape"
+import useColorComponent from "../../../hooks/useColorComponent"
+import { useState } from "react"
 
 interface AnalysisGraphType {
+  cyInstanceRef: React.RefObject<Core | null>
   isDirectedGraph: boolean,
 }
 
-
-const AnalysisGraph = ({ isDirectedGraph }: AnalysisGraphType) => {
+const AnalysisGraph = ({ cyInstanceRef, isDirectedGraph }: AnalysisGraphType) => {
+  const [isDisplayComponent, setIsDisplayComponent] = useState(false);
   const { adjacencyMatrix, nodeLabels, interconnects, nodeDegrees } = useGraphStatusStore();
-  console.log("Check node degree: ", nodeDegrees);
+  // CUSTOM HOOK
+  const { colorConnectedComponents, resetColors } = useColorComponent({ cyInstanceRef, isDirectedGraph });
+
+
+  const handleDisplayComponent = () => {
+    if (!isDisplayComponent) {
+      colorConnectedComponents();
+    } else {
+      resetColors();
+    }
+    setIsDisplayComponent(!isDisplayComponent);
+  }
+
   return (
     <>
       <ScrollArea className="h-[82vh] p-4 pt-2 pb-2">
         <div className="space-y-4">
+          {/* Miền liên thống */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex space-x-2">
+                <div className="flex justify-between w-full">
+                  <div>
+                    <Network />
+                    <span> Miền Liên Thông</span>
+                  </div>
+                  {isDisplayComponent ?
+                    <Button variant={"default"} size={"sm"} onClick={handleDisplayComponent}>Hủy</Button>
+                    :
+                    <Button variant={"default"} size={"sm"} onClick={handleDisplayComponent}>Kiểm tra</Button>
+                  }
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-xs pt-2">
+              {interconnects.length === 0 ? (
+                <div className="text-gray-500">Không có miền liên thông nào !</div>
+              ) : (
+                interconnects.map((component, index) => (
+                  <div key={index} className="border-b border-gray-200 pb-2 last:border-b-1">
+                    <span>{`Miền liên thông ${index + 1}: `}</span>
+                    <span className="text-blue-600">{component.join(" - ")}</span>
+                  </div>
+                ))
+              )}
+              <div className="pt-2">
+                <div className="flex justify-between">
+                  <span className="font-semibold">Tổng số:</span>
+                  <span className="text-blue-600 font-semibold">
+                    {interconnects.length}
+                    <span className="italic font-normal"> miền</span>
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
           {/* Ma trận kề */}
           <Card>
             <CardHeader className="pb-2">
@@ -98,36 +154,6 @@ const AnalysisGraph = ({ isDirectedGraph }: AnalysisGraphType) => {
                   <span className="font-semibold">Tổng số đỉnh:</span>
                   <span className="text-blue-600 font-semibold">
                     {Object.keys(nodeDegrees).length}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          {/* Miền liên thống */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex space-x-2">
-                <Network />
-                <span> Miền Liên Thông</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-xs pt-2">
-              {interconnects.length === 0 ? (
-                <div className="text-gray-500">Không có miền liên thông nào !</div>
-              ) : (
-                interconnects.map((component, index) => (
-                  <div key={index} className="border-b border-gray-200 pb-2 last:border-b-1">
-                    <span>{`Miền liên thông ${index + 1}: `}</span>
-                    <span className="text-blue-600">{component.join(" - ")}</span>
-                  </div>
-                ))
-              )}
-              <div className="pt-2">
-                <div className="flex justify-between">
-                  <span className="font-semibold">Tổng số:</span>
-                  <span className="text-blue-600 font-semibold">
-                    {interconnects.length}
-                    <span className="italic font-normal"> miền</span>
                   </span>
                 </div>
               </div>
