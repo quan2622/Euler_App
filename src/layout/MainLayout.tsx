@@ -8,8 +8,14 @@ import { useRunGraphAlgorithm } from "../hooks/useRunGraphAlgorithm";
 
 const MainLayout = () => {
   const cyInstance = useRef<Core | null>(null);
-  const [isDirectedGraph, setIsDirectedGraph] = useState(false);
   const startNodeRef = useRef<NodeSingular | null>(null);
+  const [isDirectedGraph, setIsDirectedGraph] = useState(false);
+
+  // CUSTOM - HOOK
+  const { handleChangeStart } = useAlgorithm(cyInstance, startNodeRef, isDirectedGraph);
+  // CUSTOM - HOOK
+
+  const { animateIsPause, handlePlayAlgorithm, nextStep, prevStep, resetAnimation } = useRunGraphAlgorithm(cyInstance, startNodeRef, isDirectedGraph);
 
   const onToggleDirected = (type?: boolean) => {
     if (type === undefined) {
@@ -18,24 +24,6 @@ const MainLayout = () => {
       setIsDirectedGraph(type);
     }
   }
-
-  // console.group('📊 Graph Status');
-  // console.log('🔗 Adjacency List:', adjacencyList);
-  // console.log("Check start node ref: ", startNodeRef.current?.data("label"));
-  // console.log('🔁 Interconnects:', interconnects);
-  // console.log('📈 Node Degrees:', nodeDegrees);
-  // console.log('🧮 Adjacency Matrix:', adjacencyMatrix);
-  // console.log('🏷️ Node Labels:', nodeLabels);
-  // console.log('➕ Edge Counter:', edgeCounter);
-  // console.log('🔢 Node Counter:', nodeCounter);
-  // console.groupEnd();
-
-  const { handleChangeStart } = useAlgorithm(cyInstance, startNodeRef, isDirectedGraph);
-  const { animateIsPause, handlePlayAlgorithm, nextStep, prevStep, resetAnimation } = useRunGraphAlgorithm(cyInstance, startNodeRef, isDirectedGraph);
-
-  // const { isEndAlgorithm } = useGraphStatusStore();
-
-  // console.log("Check status run: ", isEndAlgorithm);
 
   return (
     <>
@@ -55,12 +43,13 @@ const MainLayout = () => {
               handleChangeStart={handleChangeStart}
             />
           </div>
-          {/* Graph Container */}
+          {/* ===================== Graph Container ===================== */}
           <GraphCanvas
             cyInstanceRef={cyInstance}
             isDirectedGraph={isDirectedGraph}
             startNodeRef={startNodeRef}
           />
+          {/* ===================== Graph Container ===================== */}
         </div>
         <div className="w-96 border-zinc-200 border-l-2 bg-slate-100">
           <AppSiderbar
