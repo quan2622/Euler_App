@@ -48,7 +48,7 @@ const GraphToolbar = ({
 }: GraphToolbarProps) => {
 
   const { runMode, updateRunMode } = useGraphStore();
-  const { handleLoadStatusFormFile } = useGraphStatusStore();
+  const { handleLoadStatusFormFile, initDegreeForNode } = useGraphStatusStore();
   const [currentLayout, setCurrentLayout] = useState("grid");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -66,6 +66,7 @@ const GraphToolbar = ({
     setCurrentLayout,
     onToggleDirected,
     handleLoadStatusFormFile,
+    initDegreeForNode
   });
 
   const { connectSelection, handleDeleteElement, clearGraph } = useGraphElementManagement({

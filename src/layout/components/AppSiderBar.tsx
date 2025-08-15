@@ -1,14 +1,16 @@
+import type { Core } from "cytoscape";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import AnalysisGraph from "./SiderbarContent/AnalysisGraph";
 import AttributesGraph from "./SiderbarContent/AttributesGraph";
 
 interface AppSiderbarProps {
+  cyInstanceRef: React.RefObject<Core | null>
   isDirectedGraph: boolean
   handleChangeStart: (value: string) => void,
   handlePlayAlgorithm: () => void,
 }
 
-const AppSiderbar = ({ isDirectedGraph, handleChangeStart, handlePlayAlgorithm }: AppSiderbarProps) => {
+const AppSiderbar = ({ cyInstanceRef, isDirectedGraph, handleChangeStart, handlePlayAlgorithm }: AppSiderbarProps) => {
   return (
     <div className="flex flex-col gap-2">
       <div className="p-4 pb-0 font-semibold text-2xl text-center">
@@ -33,6 +35,7 @@ const AppSiderbar = ({ isDirectedGraph, handleChangeStart, handlePlayAlgorithm }
           </TabsContent>
           <TabsContent value="analysis">
             <AnalysisGraph
+              cyInstanceRef={cyInstanceRef}
               isDirectedGraph={isDirectedGraph}
             />
           </TabsContent>

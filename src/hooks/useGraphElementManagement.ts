@@ -99,7 +99,7 @@ const useGraphElementManagement = ({
     cy.elements().remove();
     handleResetSelectedElement();
     handleResetStatus();
-    updateResult({ stepInfo: [], eulerCycle: [] });
+    updateResult({ stepInfo: [], eulerCycle: [], errMess: "", sugMess: "", isCycle: true });
     startNodeRef.current = null;
   }, [cyInstance, handleResetSelectedElement, handleResetStatus, updateResult, startNodeRef]);
 

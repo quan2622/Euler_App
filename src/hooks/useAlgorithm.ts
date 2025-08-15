@@ -11,9 +11,8 @@ export const useAlgorithm = (
   startNodeRef: React.RefObject<NodeSingular | null>,
   isDirectedGraph: boolean,
 ) => {
-  const { nodeLabels, adjacencyList, interconnects, nodeDegrees, updateResult, updateStepbyStepInfo } = useGraphStatusStore();
+  const { adjacencyList, interconnects, nodeDegrees, updateResult, updateStepbyStepInfo } = useGraphStatusStore();
   const { runMode, selectedElements, handleSetStartNode, updateOddNode, updateSuggestMess } = useGraphStore();
-
 
   const ValidateGraph = (steps: stepInfo[], stepsCounter: { count: number }): boolean => {
     // Start - Check interconnect component
@@ -138,7 +137,7 @@ export const useAlgorithm = (
   const findEulerPath = (type: string): EulerResult => {
     const cy = cyInstanceRef.current;
     if (!cy) return { step: [], eulerCycle: [] };
-    if (nodeLabels.length === 0) {
+    if (cy.nodes().length === 0 || cy.edges().length === 0) {
       toast.warning("Vui lòng nhập thông tin đồ thị trước khi chạy thuật toán");
       return { step: [], eulerCycle: [] };
     }

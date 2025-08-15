@@ -1,16 +1,12 @@
 import { Route, Routes } from "react-router-dom"
 import MainLayout from "./layout/MainLayout"
-import HomePage from "./pages/home/HomePage"
-import GraphPage from "./pages/graph/GraphPage"
 import { Toaster } from 'sonner'
 
 function App() {
   return (
     <>
       <Routes>
-        <Route path="/main" element={<MainLayout />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/" element={<GraphPage />} />
+        <Route path="/" element={<MainLayout />} />
       </Routes>
       <Toaster
         position="bottom-center"

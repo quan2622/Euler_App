@@ -53,6 +53,7 @@ const MainLayout = () => {
         </div>
         <div className="w-96 border-zinc-200 border-l-2 bg-slate-100">
           <AppSiderbar
+            cyInstanceRef={cyInstance}
             isDirectedGraph={isDirectedGraph}
             handleChangeStart={handleChangeStart}
             handlePlayAlgorithm={handlePlayAlgorithm}

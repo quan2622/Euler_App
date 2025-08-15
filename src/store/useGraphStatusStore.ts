@@ -27,7 +27,7 @@ type State = {
 
 type Action = {
   updateStatusStepByStep: (value: boolean) => void,
-  updateResult: ({ eulerCycle, stepInfo, errMess, sugMess }: AlgorithmResult) => void,
+  updateResult: ({ eulerCycle, stepInfo, errMess, sugMess, isCycle }: AlgorithmResult) => void,
   updateStepbyStepInfo: (stepInfo: stepInfo | null) => void,
   updateIsEndAlgorithm: (newValue: boolean) => void,
   updateInterConnect: (interconnects: string[][]) => void,
