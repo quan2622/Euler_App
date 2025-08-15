@@ -79,6 +79,7 @@ export const useGraphEvents = (
 
   // HANDLE PROCESS EVENT MOUSE MOVE
   const handleMouseMove = useCallback((cy: Core, evt: MouseEventObject) => {
+    // Xóa những node và edge ở vị trí cũ
     const tempIds = [tempEdgeIdRef.current, tempTargetNodeIdRef.current].filter((id) => id !== null);
     GraphService.clearTempElements(cy, tempIds);
 

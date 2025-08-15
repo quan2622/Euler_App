@@ -15,7 +15,7 @@ const useGraphGeneration = ({
   isDirectedGraph,
   handleChangeStart,
 }: UseGraphGenerationProps) => {
-  const { handleLoadStatusFormFile, updateNodeDegree } = useGraphStatusStore();
+  const { handleLoadStatusFormFile, updateNodeDegree, handleResetStatus, updateResult } = useGraphStatusStore();
 
   const handleGenerateGraph = useCallback(() => {
     const cy = cyInstance.current;
@@ -25,6 +25,9 @@ const useGraphGeneration = ({
       console.error("Cytoscape instance chưa sẵn sàng.");
       return;
     }
+
+    handleResetStatus();
+    updateResult({ eulerCycle: [], stepInfo: [], errMess: "", sugMess: "", isCycle: true });
 
     cy.elements().remove();
     const lines = inputData.value.trim().split("\n");

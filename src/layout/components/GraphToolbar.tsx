@@ -48,7 +48,7 @@ const GraphToolbar = ({
 }: GraphToolbarProps) => {
 
   const { runMode, updateRunMode } = useGraphStore();
-  const { handleLoadStatusFormFile, initDegreeForNode } = useGraphStatusStore();
+  const { handleLoadStatusFormFile } = useGraphStatusStore();
   const [currentLayout, setCurrentLayout] = useState("grid");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -66,13 +66,13 @@ const GraphToolbar = ({
     setCurrentLayout,
     onToggleDirected,
     handleLoadStatusFormFile,
-    initDegreeForNode
   });
 
   const { connectSelection, handleDeleteElement, clearGraph } = useGraphElementManagement({
     cyInstance,
     isDirectedGraph,
     startNodeRef,
+    inputDataGraphRef,
   });
 
   const { handleGenerateGraph } = useGraphGeneration({
@@ -93,6 +93,30 @@ const GraphToolbar = ({
       updateRunMode(RUN_MODE.STEP);
     } else updateRunMode(RUN_MODE.AUTO);
   }
+
+  const handleSelectNumber = (value: string) => {
+    if (!inputDataGraphRef.current) return;
+    const vertexCount = +value;
+
+    const vertices = Array.from({ length: vertexCount }, (_, i) => String.fromCharCode(65 + i));
+
+    const edges = [];
+    for (let i = 1; i < vertexCount; i++) {
+      const randomParent = Math.floor(Math.random() * (vertexCount - 1));
+      edges.push(`${vertices[randomParent]} ${vertices[i]}`);
+    }
+
+    for (let i = 0; i < vertexCount; i++) {
+      for (let j = i + 1; j < vertexCount; j++) {
+        if (Math.random() > 0.5) {
+          edges.push(`${vertices[i]} ${vertices[j]}`);
+        }
+      }
+    }
+
+    inputDataGraphRef.current.value = edges.join("\n");
+  }
+
 
   return (
     <div className="w-full p-4">
@@ -156,7 +180,8 @@ const GraphToolbar = ({
             <div className="border-l-2 border-zinc-800/30 my-1" />
 
             <div className="flex items-center space-x-2">
-              <Select>
+              <Select
+                onValueChange={(value) => handleSelectNumber(value)}>
                 <SelectTrigger className="w-[130px]">
                   <SelectValue placeholder="Chọn số đỉnh" />
                 </SelectTrigger>
@@ -170,7 +195,7 @@ const GraphToolbar = ({
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              <Button variant={"default"} disabled>Tạo đồ thị</Button>
+              <Button variant={"default"} onClick={handleGenerateGraph}>Tạo đồ thị</Button>
             </div>
 
             <div className="border-l-2 border-zinc-800/30 my-1" />

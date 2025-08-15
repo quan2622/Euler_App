@@ -9,12 +9,14 @@ interface UseGraphElementManagementProps {
   cyInstance: React.RefObject<Core | null>;
   isDirectedGraph: boolean;
   startNodeRef: React.RefObject<NodeSingular | null>;
+  inputDataGraphRef: React.RefObject<HTMLTextAreaElement | null>
 }
 
 const useGraphElementManagement = ({
   cyInstance,
   isDirectedGraph,
   startNodeRef,
+  inputDataGraphRef,
 }: UseGraphElementManagementProps) => {
   const { selectedElements, handleResetSelectedElement } = useGraphStore();
   const { updateNodeDegree, handleResetStatus, updateResult, nodeDegrees } = useGraphStatusStore();
@@ -100,8 +102,10 @@ const useGraphElementManagement = ({
     handleResetSelectedElement();
     handleResetStatus();
     updateResult({ stepInfo: [], eulerCycle: [], errMess: "", sugMess: "", isCycle: true });
+
     startNodeRef.current = null;
-  }, [cyInstance, handleResetSelectedElement, handleResetStatus, updateResult, startNodeRef]);
+    inputDataGraphRef.current = null;
+  }, [cyInstance, handleResetSelectedElement, handleResetStatus, updateResult, startNodeRef, inputDataGraphRef]);
 
   return {
     connectSelection,

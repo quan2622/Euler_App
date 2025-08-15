@@ -127,7 +127,7 @@ export const useRunGraphAlgorithm = (
         if (typeof currentStepData?.action?.to === "string" && !isStep) {
           cy.$id(currentStepData.action.to).addClass("end");
         }
-        console.log("Check is end algorithm: ", isEndAlgorithm);
+
         if (!isDisplay) {
           toast.success("Tìm thấy chu trình Euler");
         }

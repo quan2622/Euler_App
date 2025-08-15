@@ -34,7 +34,7 @@ const CreateNodeDialog = ({ isOpen, labelNode, toggleDialog, onLableChange, hand
                 }
               }}
               className="col-span-3"
-              placeholder="Enter node name"
+              placeholder="Nhập tên của đỉnh"
             />
           </div>
         </div>

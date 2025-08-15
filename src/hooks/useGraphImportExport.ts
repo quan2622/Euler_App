@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import type { Core, NodeSingular, EdgeSingular } from "cytoscape";
 import { toast } from "sonner";
+import { useGraphStatusStore } from "../store/useGraphStatusStore";
 
 interface UseGraphImportExportProps {
   cyInstance: React.RefObject<Core | null>;
@@ -9,7 +10,6 @@ interface UseGraphImportExportProps {
   setCurrentLayout: (layout: string) => void;
   onToggleDirected: (type?: boolean) => void;
   handleLoadStatusFormFile: (maxNode: number, maxEdge: number) => void;
-  initDegreeForNode: (nodeId: string) => void;
 }
 
 const useGraphImportExport = ({
@@ -19,8 +19,10 @@ const useGraphImportExport = ({
   setCurrentLayout,
   onToggleDirected,
   handleLoadStatusFormFile,
-  initDegreeForNode,
 }: UseGraphImportExportProps) => {
+
+  const { updateNodeDegree, initDegreeForNode } = useGraphStatusStore();
+
   const exportGraph = useCallback(() => {
     const cy = cyInstance.current;
     if (!cy) return;
@@ -96,6 +98,17 @@ const useGraphImportExport = ({
                 group: "edges",
                 data: edge.data,
               });
+            });
+
+            // HANDLE UPDATE NODE DEGREE
+            cy.edges().forEach((edge) => {
+              const sourceId = edge.data("source");
+              const targetId = edge.data("target");
+
+              const source = cy.$id(sourceId).data("label");
+              const target = cy.$id(targetId).data("label");
+
+              updateNodeDegree(source, target, isDirectedGraph);
             });
           }
 

@@ -176,15 +176,15 @@ class AlgorithmEuler {
             });
           }
         }
-        // if (!next) {
-        //   next = adjList[curr][0];
-        //   steps.push({
-        //     step: stepsCounter.count++,
-        //     description: `Không tìm thấy cạnh không phải là cạnh cầu. Chọn cạnh cầu đầu tiên ('${cy.$id(curr).data("label")} !' --> '${cy.$id(next).data("label")}')`,
-        //     eulerCycle: [...eulerCycle],
-        //     action: { type: 'traverse', from: curr, to: next }
-        //   });
-        // }
+        if (!next) {
+          next = adjList[curr][0];
+          steps.push({
+            step: stepsCounter.count++,
+            description: `Không tìm thấy cạnh không phải là cạnh cầu. Chọn cạnh cầu đầu tiên ('${cy.$id(curr).data("label")} !' --> '${cy.$id(next).data("label")}')`,
+            eulerCycle: [...eulerCycle],
+            action: { type: 'traverse', from: curr, to: next }
+          });
+        }
       }
 
       if (next) {

@@ -4,7 +4,7 @@ import Algorithm from "../Algorithm/FindEulerPath";
 import { toast } from "sonner";
 import { ALGORITHM_SELECT, RUN_MODE } from "../utils/constant";
 import { useGraphStore } from "../store/useGraphStore";
-import type { stepInfo } from "../types/graph.type";
+import type { EulerResult, stepInfo } from "../types/graph.type";
 
 export const useAlgorithm = (
   cyInstanceRef: React.RefObject<Core | null>,
@@ -80,8 +80,8 @@ export const useAlgorithm = (
       }
       if (oddNode.length > 0)
         if (oddNode.length !== 2) {
-          toast.error(`Đồ thị tồn tại ${oddNode.length} đỉnh bậc lẻ`);
-          updateResult({ errMess: `Lỗi: Đồ thị tồn tại ${oddNode.length} đỉnh bậc lẻ` });
+          toast.error(`Đồ thị tồn tại ${oddNode.length} đỉnh bậc lẻ: ${oddNode.join(" - ")}`);
+          updateResult({ errMess: `Lỗi: Đồ thị tồn tại ${oddNode.length} đỉnh bậc lẻ: ${oddNode.join(" - ")}` });
           return false;
         } else {
           updateResult({ isCycle: false });
@@ -127,11 +127,6 @@ export const useAlgorithm = (
     }
 
     return true;
-  }
-
-  interface EulerResult {
-    step: stepInfo[];
-    eulerCycle: string[];
   }
 
   const findEulerPath = (type: string): EulerResult => {

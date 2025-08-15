@@ -38,16 +38,7 @@ export const useAnalystis = (
       }
     });
 
-    // Thông tin bậc của đỉnh
-    edges.forEach((edge) => {
-      const sourceId = edge.data("source");
-      const targetId = edge.data("target");
 
-      const source = cy.$id(sourceId).data("label");
-      const target = cy.$id(targetId).data("label");
-
-      updateNodeDegree(source, target, isDirectedGraph);
-    });
 
     // Danh sách kề
     const adjacencyList: { [key: string]: string[] } = {};
