@@ -44,17 +44,12 @@ export const useAlgorithm = (
         return false;
       }
     }
-
-    steps.push({
-      step: stepsCounter.count++,
-      description: "Thành phần liên thông hợp lệ",
-    });
     // End - Check interconnect component
 
     // Start - Check even node degree
     steps.push({
       step: stepsCounter.count++,
-      description: "Kiểm tra bậc của các đỉnh",
+      description: "Thành phần liên thông hợp lệ. Kiểm tra bậc của các đỉnh",
     });
 
     if (!checkEvenDegree()) {
@@ -87,7 +82,7 @@ export const useAlgorithm = (
       if (oddNode.length > 0)
         if (oddNode.length !== 2) {
           toast.error(`Đồ thị tồn tại ${oddNode.length} đỉnh bậc lẻ`);
-          updateResult({ errMess: `Đồ thị tồn tại ${oddNode.length} đỉnh bậc lẻ` });
+          updateResult({ errMess: `Lỗi: Đồ thị tồn tại ${oddNode.length} đỉnh bậc lẻ` });
           return false;
         } else {
           updateResult({ isCycle: false });
@@ -105,17 +100,31 @@ export const useAlgorithm = (
       for (const node in nodeDegrees) {
         if (nodeDegrees[node].in !== nodeDegrees[node].out) {
           if (nodeDegrees[node].out - nodeDegrees[node].in === 1) {
-            if (startNode) return false;
+            if (startNode) {
+              toast.error(`Lỗi: Đồ thị có nhiều hơn một điểm bắt đầu ${startNode} và ${node}.`);
+              updateResult({ errMess: `Lỗi: Đồ thị có nhiều hơn một điểm bắt đầu ${startNode} và ${node}.` });
+              return false;
+            }
             startNode = node;
           } else if (nodeDegrees[node].in - nodeDegrees[node].out === 1) {
-            if (endNode) return false;
+            if (endNode) {
+              toast.error(`Lỗi: Đồ thị có nhiều hơn một điểm kết thúc ${endNode} và ${node}.`);
+              updateResult({ errMess: `Lỗi: Đồ thị có nhiều hơn một điểm kết thúc ${endNode} và ${node}.` });
+              return false;
+            }
             endNode = node;
-          } else
+          } else {
+            toast.error(`Lỗi tại đỉnh ${node}: Chênh lệch giữa bậc ra và bậc vào không hợp lệ.`);
+            updateResult({ errMess: `Lỗi tại đỉnh ${node}: Chênh lệch giữa bậc ra và bậc vào không hợp lệ.` });
             return false;
+          }
         }
       }
-      if (startNode && endNode)
+      if (startNode && endNode) {
         updateOddNode([startNode, endNode]);
+        toast.success(`Tìm thấy đường đi Euler. Bắt đầu từ ${startNode}, kết thúc tại ${endNode}.`);
+        updateResult({ sugMess: `Tìm thấy đường đi Euler. Bắt đầu từ ${startNode}, kết thúc tại ${endNode}.` })
+      }
     }
 
     return true;

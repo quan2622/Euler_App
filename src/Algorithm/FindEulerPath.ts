@@ -80,7 +80,7 @@ class AlgorithmEuler {
 
         steps.push({
           step: stepsCounter.count++,
-          description: `Duyệt cạnh kề của ${cy.$id(curr).data("label")}. Đi theo cạnh ('${cy.$id(curr).data("label")}' --> '${cy.$id(next!).data("label")}'), xóa cạnh này và thêm ${cy.$id(next!).data("label")} vào stack.`,
+          description: `Duyệt cạnh kề của ${cy.$id(curr).data("label")}. Đi theo cạnh ('${cy.$id(curr).data("label")}' --> '${cy.$id(next!).data("label")}'), đánh dấu cạnh này và thêm ${cy.$id(next!).data("label")} vào stack.`,
           eulerCycle: [...eulerCycle],
           stack: [...stack],
           // ================== TEST ==================
@@ -196,7 +196,7 @@ class AlgorithmEuler {
         }
         steps.push({
           step: stepsCounter.count++,
-          description: `Xóa cạnh ('${cy.$id(curr).data("label")}' --> '${cy.$id(next).data("label")}')`,
+          description: `Đánh dấu cạnh ('${cy.$id(curr).data("label")}' --> '${cy.$id(next).data("label")}')`,
           eulerCycle: [...eulerCycle],
         });
         curr = next;
